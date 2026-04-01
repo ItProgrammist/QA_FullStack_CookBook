@@ -1,0 +1,40 @@
+.cardBody {
+    text-align: left;
+    color: white;
+    margin-bottom: 80px;
+    background-color: #171717;
+    padding: 15px;
+    border-radius: 20px 20px 5px 5px;
+}
+
+.cardBody img {
+    width: 100%;
+    height: 30%;
+    border-radius: 20px 20px 5px 5px;
+}
+
+.cardBody h5 {
+    margin-top: 20px;
+}
+
+.content {
+    width: 80%;
+    margin-left: 5px;
+    padding-bottom: 20px;
+}
+
+#editSection img,
+#deleteSection img {
+
+    width: 2.5%;
+    height: 3.5%;
+    position: absolute;
+    margin-top: 20px;
+    margin-left: 50px;
+    
+}
+
+#editSection img:hover,
+#deleteSection img:hover {
+    cursor: pointer;
+}
