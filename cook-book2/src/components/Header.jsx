@@ -1,4 +1,4 @@
-import styles from '../products/Products.module.scss'
+import styles from './scss/Header.module.scss'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 

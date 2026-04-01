@@ -1,28 +1,52 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import styles from './scss/SearchPanel.module.scss'
 import { Link } from 'react-router-dom'
-import { Header } from './Header'
+import { ModalWindow } from './ModalWindow'
 
 
 export function SearchPanel() {
 
-    const [details, setDetails] = useState({
-        title: 'Null',
-        description: 'LEGENDARY Description',
-        buttonText: "John Cena's CLICK"
-    })
+    const [modalOpen, setModalOpen] = useState(false)
+
 
     return (
-        <div className={styles.searchPanel}>
-            <div className="searchTab">
+        <div>
+            <ModalWindow
+                isVisible={modalOpen}
+                onClose={() => setModalOpen(false)}
+            />
+            <div className='container'>
+                <div id={styles.searchPanel} className="row" onClick={() => setModalOpen(true)}>
 
-            </div>
-            <div className="filters">
+                    <div id={styles.filters} className="col-lg-4">
+                        <img id={styles.filtersImage} src="../filter.png" alt="" />
+                        <p id={styles.filtersText}>Filters</p>
+                        <img id={styles.dropDownArrow} src="../down-chevron.png" alt="" />
+                    </div>
 
+                    <div id={styles.searchTab} className="col-lg-4">
+                        <input type="text" name="query" placeholder="Search..."></input>
+                    </div>
+
+
+
+
+
+                    {/* <img src="../sort.png" alt="" /> */}
+                    <div id={styles.sorting} className="col-lg-2">
+                        <select>
+                            <option>Пункт 1</option>
+                            <option>Пункт 2</option>
+                        </select>
+                    </div>
+
+                    <button id={styles.searchButton} className='btn btn-danger col-lg-2'>
+                        Show
+                    </button>
+
+                </div>
             </div>
-            <button className='btn btn-danger'>
-                Show
-            </button>
         </div>
+
     )
 } 

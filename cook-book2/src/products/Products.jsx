@@ -4,23 +4,26 @@ import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { ProductCard } from '../components/ProductCard'
 import { SearchPanel } from '../components/SearchPanel'
+import { ModalWindow } from '../components/ModalWindow'
 
 
 export function Products() {
 
-  const [details, setDetails] = useState({
-    title: 'Null',
-    description: 'LEGENDARY Description',
-    buttonText: "John Cena's CLICK"
-  })
+  const [modalOpen, setModalOpen] = useState(false)
 
   return (
     <div>
       <Header />
       <div className={styles.createProduct}>
-        <button className='btn btn-warning'>Create a product</button>
+        <button className='btn btn-warning' onClick={() => setModalOpen(true)}>
+          Add a product
+        </button>
       </div>
       <SearchPanel />
+      <ModalWindow
+        isVisible={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
       <div className={styles.productsBody}>
         <div className="container">
           <div className="col-lg-12">
