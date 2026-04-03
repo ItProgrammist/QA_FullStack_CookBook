@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { ProductCard } from '../components/ProductCard'
 import { SearchPanel } from '../components/SearchPanel'
-import { ModalWindow } from '../components/ModalWindow'
+import { ModalWindowProduct } from '../components/ModalWindowProduct'
 
 
 export function Products() {
@@ -20,7 +20,7 @@ export function Products() {
         </button>
       </div>
       <SearchPanel />
-      <ModalWindow
+      <ModalWindowProduct
         isVisible={modalOpen}
         onClose={() => setModalOpen(false)}
       />

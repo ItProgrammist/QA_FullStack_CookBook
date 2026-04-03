@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import styles from './scss/SearchPanel.module.scss'
 import { Link } from 'react-router-dom'
-import { ModalWindow } from './ModalWindow'
+import { ModalWindowProduct } from './ModalWindowProduct'
 
 
 export function SearchPanel() {
@@ -11,14 +11,14 @@ export function SearchPanel() {
 
     return (
         <div>
-            <ModalWindow
+            <ModalWindowProduct
                 isVisible={modalOpen}
                 onClose={() => setModalOpen(false)}
             />
             <div className='container'>
-                <div id={styles.searchPanel} className="row" onClick={() => setModalOpen(true)}>
+                <div id={styles.searchPanel} className="row">
 
-                    <div id={styles.filters} className="col-lg-4">
+                    <div id={styles.filters} className="col-lg-4" onClick={() => setModalOpen(true)}>
                         <img id={styles.filtersImage} src="../filter.png" alt="" />
                         <p id={styles.filtersText}>Filters</p>
                         <img id={styles.dropDownArrow} src="../down-chevron.png" alt="" />
