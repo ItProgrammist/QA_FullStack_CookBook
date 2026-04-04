@@ -34,14 +34,14 @@ export function ModalWindowDish({ isVisible, onClose }) {
                             <div className="container">
                                 <div id={styles.formGroups} className="row">
 
-                                    <div class="form-group">
-                                        <label for="exampleInput1">Dish name</label>
-                                        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="e.g. Apple pie"></input>
+                                    <div className="form-group">
+                                        <label htmlFor="exampleInput1">Dish name</label>
+                                        <input type="text" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="e.g. Apple pie"></input>
                                         {/* <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small> */}
                                     </div>
                                     <div id={styles.selectSearch} className="form-group col-lg-9">
-                                        <label for="exampleInput2">Ingredients</label>
-                                        <input placeholder="Ingredients" type="text" class="form-control" list="brow"></input>
+                                        <label htmlFor="exampleInput2">Ingredients</label>
+                                        <input placeholder="Ingredients" type="text" className="form-control" list="brow"></input>
                                         <datalist id="brow">
                                             <option value="Internet Explorer"></option>
                                             <option value="Firefox"></option>
@@ -54,29 +54,29 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         <button id={styles.addBtn} className="btn btn-warning">Add</button>
                                     </div>
 
-                                    <div class="form-group col-lg-3">
-                                        <label for="exampleInput3">Cal.</label>
-                                        <input type="number" class="form-control" id="exampleInput3" placeholder="420"></input>
+                                    <div className="form-group col-lg-3">
+                                        <label htmlFor="exampleInput3">Cal.</label>
+                                        <input type="number" className="form-control" id="exampleInput3" placeholder="420"></input>
                                     </div>
 
-                                    <div class="form-group col-lg-3">
-                                        <label for="exampleInput4">Proteins</label>
-                                        <input type="number" class="form-control" id="exampleInput4" placeholder="8"></input>
+                                    <div className="form-group col-lg-3">
+                                        <label htmlFor="exampleInput4">Proteins</label>
+                                        <input type="number" className="form-control" id="exampleInput4" placeholder="8"></input>
                                     </div>
 
-                                    <div class="form-group col-lg-3">
-                                        <label for="exampleInput5">Fats</label>
-                                        <input type="number" class="form-control" id="exampleInput5" placeholder="12"></input>
+                                    <div className="form-group col-lg-3">
+                                        <label htmlFor="exampleInput5">Fats</label>
+                                        <input type="number" className="form-control" id="exampleInput5" placeholder="12"></input>
                                     </div>
 
-                                    <div class="form-group col-lg-3">
-                                        <label for="exampleInput6">Carbs.</label>
-                                        <input type="number" class="form-control" id="exampleInput6" placeholder="54"></input>
+                                    <div className="form-group col-lg-3">
+                                        <label htmlFor="exampleInput6">Carbs.</label>
+                                        <input type="number" className="form-control" id="exampleInput6" placeholder="54"></input>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label for="exampleInput7">Category</label>
-                                        <input placeholder="Category" type="text" class="form-control" list="brow2"></input>
+                                    <div className="form-group">
+                                        <label htmlFor="exampleInput7">Category</label>
+                                        <input placeholder="Category" type="text" className="form-control" list="brow2"></input>
                                         <datalist id="brow2">
                                             <option value="Internet Explorer"></option>
                                             <option value="Firefox"></option>
@@ -86,9 +86,9 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         </datalist>
                                     </div>
 
-                                    <div class="form-group col-lg-12">
-                                        <label for="exampleInput6">Portion, g.</label>
-                                        <input type="number" class="form-control" id="exampleInput6" placeholder="120"></input>
+                                    <div className="form-group col-lg-12">
+                                        <label htmlFor="exampleInput6">Portion, g.</label>
+                                        <input type="number" className="form-control" id="exampleInput6" placeholder="120"></input>
                                     </div>
                                     <br />
                                     <br />
@@ -103,7 +103,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         />
                                     </div>
                                     <div className="col-lg-10">
-                                        <button id={styles.submitBtn} type="submit" class="btn btn-warning">Submit</button>
+                                        <button id={styles.submitBtn} type="submit" className="btn btn-warning">Submit</button>
                                     </div>
 
                                     <div className='col-lg-12'>

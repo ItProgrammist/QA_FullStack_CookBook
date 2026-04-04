@@ -22,3 +22,19 @@
     margin-left: 5px;
     padding-bottom: 20px;
 }
+
+#editSection img,
+#deleteSection img {
+
+    width: 2.5%;
+    height: 3.5%;
+    position: absolute;
+    margin-top: 20px;
+    margin-left: 50px;
+    
+}
+
+#editSection img:hover,
+#deleteSection img:hover {
+    cursor: pointer;
+}

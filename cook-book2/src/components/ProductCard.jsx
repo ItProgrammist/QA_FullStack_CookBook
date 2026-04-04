@@ -2,15 +2,14 @@ import { useState } from 'react'
 import styles from './scss/ProductCard.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
+import { ModalEditProduct } from './ModalEditProduct'
+import { ModalDeleteProduct } from './ModalDeleteProduct'
 
 
 export function ProductCard() {
 
-    const [details, setDetails] = useState({
-        title: 'Null',
-        description: 'LEGENDARY Description',
-        buttonText: "John Cena's CLICK"
-    })
+    const [modalOpen, setModalOpen] = useState(false)
+    const [modalOpen2, setModalOpen2] = useState(false)
 
     return (
         <div >
@@ -24,13 +23,21 @@ export function ProductCard() {
 
                             </div>
                             <div id={styles.deleteSection} className="col-lg-2">
-                                <img src="./edit.png" />
+                                <img src="./edit.png" onClick={() => setModalOpen(true)} />
+                                <ModalEditProduct
+                                    isVisible={modalOpen}
+                                    onClose={() => setModalOpen(false)}
+                                />
                             </div>
                             <div id={styles.editSection} className="col-lg-2">
-                                <img src="./trash.png" />
+                                <img src="./trash.png" onClick={() => setModalOpen2(true)} />
+                                <ModalDeleteProduct
+                                    isVisible={modalOpen2}
+                                    onClose={() => setModalOpen2(false)}
+                                />
                             </div>
-                            <p><p id='caloriesCount'></p> kcal</p>
-                            <p>Category: <p id='productCategory'></p></p>
+                            <p><span id='caloriesCount'></span> cal.</p>
+                            <p>Category: <span id='productCategory'></span></p>
                             <p id='productFlags'>#flag1 #flag2 #flag3</p>
 
                             {/* <p>
@@ -38,7 +45,7 @@ export function ProductCard() {
                                 fats: <p id='fatsCount'></p>
                                 carbs: <p id='carbsCount'></p>
                             </p> */}
-                            <p>Cooking state: <p id='cookingState'>Raw / Ready-to-heat / Ready-to-eat</p></p>
+                            <p>Cooking state: <span id='cookingState'>Raw / Ready-to-heat / Ready-to-eat</span></p>
                         </div>
                         <button id={styles.buttonSeeMore} className="btn btn-warning">See more</button>
                     </div>

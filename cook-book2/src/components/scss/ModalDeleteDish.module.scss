@@ -1,0 +1,13 @@
+#mainModal {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: block;
+    position: fixed; 
+    top: 0; 
+    bottom: 0;
+    left: 0;
+}
+
+#modalContent {
+    background-color: rgb(49, 49, 49);
+    color: white;
+}

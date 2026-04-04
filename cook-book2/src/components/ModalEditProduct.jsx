@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
-import styles from './scss/ModalWindowProduct.module.scss'
+import styles from './scss/ModalEditProduct.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
 
 
-export function ModalWindowProduct({ isVisible, onClose }) {
+export function ModalEditProduct({ isVisible, onClose }) {
   if (!isVisible) return null;
 
   const fileInputRef = useRef(null)
@@ -26,7 +26,7 @@ export function ModalWindowProduct({ isVisible, onClose }) {
       <div className="modal-dialog">
         <div id={styles.modalContent} className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Add a product</h5>
+            <h5 className="modal-title">Edit "<span></span>"</h5>
             <button data-bs-theme="dark" type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
@@ -105,7 +105,7 @@ export function ModalWindowProduct({ isVisible, onClose }) {
                   </div>
 
                   <div className="col-lg-10">
-                    <button id={styles.submitBtn} type="submit" className="btn btn-warning">Submit</button>
+                    <button id={styles.submitBtn} type="submit" className="btn btn-warning">Save</button>
                   </div>
 
                   <div className='col-lg-12'>
