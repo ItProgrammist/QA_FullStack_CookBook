@@ -34,15 +34,6 @@ export function App() {
               <div className="col-lg-4">
                 <DishCard />
               </div>
-              <div className="col-lg-4">
-                <DishCard />
-              </div>
-              <div className="col-lg-4">
-                <DishCard />
-              </div>
-              <div className="col-lg-4">
-                <DishCard />
-              </div>
             </div>
           </div>
         </div>

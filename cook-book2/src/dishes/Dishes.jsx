@@ -4,22 +4,22 @@ import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { DishCard } from '../components/DishCard'
 import { SearchPanel } from '../components/SearchPanel'
-
+import { ModalWindowDish } from '../components/ModalWindowDish'
 
 export function Dishes() {
 
-    const [details, setDetails] = useState({
-        title: 'Null',
-        description: 'LEGENDARY Description',
-        buttonText: "John Cena's CLICK"
-    })
+    const [modalOpenDish, setModalOpenDish] = useState(false)
 
     return (
         <div>
             <Header />
             <div className={styles.createDish}>
-                <button className='btn btn-warning'>Create a dish</button>
+                <button className='btn btn-warning' onClick={() => setModalOpenDish(true)}>Create a dish</button>
             </div>
+            <ModalWindowDish
+                isVisible={modalOpenDish}
+                onClose={() => setModalOpenDish(false)}
+            />
             <SearchPanel />
             <div className={styles.dishesBody}>
                 <div className="container">
