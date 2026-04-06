@@ -1,0 +1,60 @@
+#mainModal {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: block;
+    position: fixed; 
+    top: 0; 
+    bottom: 0;
+    left: 0;
+}
+
+#modalContent {
+    background-color: rgb(49, 49, 49);
+    color: white;
+}
+
+#modalContent label {
+    float: left;
+}
+
+#formGroups div {
+    margin-bottom: 15px;
+}
+
+#checkInput {
+    margin-left: 15px;
+}
+
+#submitBtn {
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#modalContent img {
+    width: 40px;
+    height: 40px;
+    margin-top: 10px;
+    left: 0;
+}
+
+#modalContent img:hover {
+    cursor: pointer;
+}
+
+#selectSearch input {
+    width: 100%;
+}
+
+#addBtn {
+    width: 100%;
+    float: left;
+    margin-top: 25.5px;
+    height: 63%;
+}
+
+#fileCaption {
+    font-size: 14px;
+    float: left;
+}

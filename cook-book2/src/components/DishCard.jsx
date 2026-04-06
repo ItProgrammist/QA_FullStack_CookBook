@@ -2,11 +2,13 @@ import { useState } from 'react'
 import styles from './scss/DishCard.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
+import { ModalEditDish } from './ModalEditDish'
 import { ModalDeleteDish } from './ModalDeleteDish'
 
 
 export function DishCard() {
 
+    const [modalOpen, setModalOpen] = useState(false)
     const [modalOpen2, setModalOpen2] = useState(false)
 
     return (
@@ -20,7 +22,11 @@ export function DishCard() {
                                 <h5>Title Sample</h5>
                             </div>
                             <div id={styles.deleteSection} className="col-lg-2">
-                                <img src="./edit.png" />
+                                <img src="./edit.png" onClick={() => setModalOpen(true)} />
+                                <ModalEditDish
+                                    isVisible={modalOpen}
+                                    onClose={() => setModalOpen(false)}
+                                />
                             </div>
                             <div id={styles.editSection} className="col-lg-2">
                                 <img src="./trash.png" onClick={() => setModalOpen2(true)} />

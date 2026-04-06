@@ -2,16 +2,23 @@ import { useState, useRef } from 'react'
 import styles from './scss/SearchPanel.module.scss'
 import { Link } from 'react-router-dom'
 import { ModalWindowProduct } from './ModalWindowProduct'
+import { FiltersModalDishes } from './FiltersModalDishes'
+import { FiltersModalProducts } from './FiltersModalProducts'
 
 
-export function SearchPanel() {
+export function SearchPanel({ isProduct }) {
 
     const [modalOpen, setModalOpen] = useState(false)
 
+    let CurrentModal = FiltersModalDishes
+
+    if (isProduct) {
+        CurrentModal = FiltersModalProducts
+    }
 
     return (
         <div>
-            <ModalWindowProduct
+            <CurrentModal
                 isVisible={modalOpen}
                 onClose={() => setModalOpen(false)}
             />

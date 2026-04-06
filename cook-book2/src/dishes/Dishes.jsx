@@ -20,7 +20,9 @@ export function Dishes() {
                 isVisible={modalOpenDish}
                 onClose={() => setModalOpenDish(false)}
             />
-            <SearchPanel />
+            <SearchPanel
+                isProduct={false}
+            />
             <div className={styles.dishesBody}>
                 <div className="container">
                     <div className="col-lg-12">

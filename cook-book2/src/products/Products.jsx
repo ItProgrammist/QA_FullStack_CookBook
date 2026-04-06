@@ -19,7 +19,9 @@ export function Products() {
           Add a product
         </button>
       </div>
-      <SearchPanel />
+      <SearchPanel
+        isProduct={true}
+      />
       <ModalWindowProduct
         isVisible={modalOpen}
         onClose={() => setModalOpen(false)}
