@@ -4,12 +4,14 @@ import { Link } from 'react-router-dom'
 import { Header } from './Header'
 import { ModalEditProduct } from './ModalEditProduct'
 import { ModalDeleteProduct } from './ModalDeleteProduct'
+import { ProductDetails } from './ProductDetails'
 
 
 export function ProductCard() {
 
     const [modalOpen, setModalOpen] = useState(false)
     const [modalOpen2, setModalOpen2] = useState(false)
+    const [modalOpen3, setModalOpen3] = useState(false)
 
     return (
         <div >
@@ -47,7 +49,17 @@ export function ProductCard() {
                             </p> */}
                             <p>Cooking state: <span id='cookingState'>Raw / Ready-to-heat / Ready-to-eat</span></p>
                         </div>
-                        <button id={styles.buttonSeeMore} className="btn btn-warning">See more</button>
+                        <button
+                            id={styles.buttonSeeMore}
+                            className="btn btn-warning"
+                            onClick={() => setModalOpen3(true)}
+                        >
+                            See more
+                        </button>
+                        <ProductDetails
+                            isVisible={modalOpen3}
+                            onClose={() => setModalOpen3(false)}
+                        />
                     </div>
                 </div>
 

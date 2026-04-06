@@ -11,9 +11,22 @@ export function SearchPanel({ isProduct }) {
     const [modalOpen, setModalOpen] = useState(false)
 
     let CurrentModal = FiltersModalDishes
+    const СurrentPanel = isProduct ? (
+        <div id={styles.sorting} className="col-lg-2">
+            <select>
+                <option>По названию (А-Я)</option>
+                <option>По калориям</option>
+                <option>По белка́м</option>
+                <option>По жирам</option>
+                <option>По углеводам</option>
+            </select>
+        </div>
+    ) : null;
+    let SearchTabSize = 'col-lg-6'
 
     if (isProduct) {
         CurrentModal = FiltersModalProducts
+        SearchTabSize = 'col-lg-4'
     }
 
     return (
@@ -31,7 +44,7 @@ export function SearchPanel({ isProduct }) {
                         <img id={styles.dropDownArrow} src="../down-chevron.png" alt="" />
                     </div>
 
-                    <div id={styles.searchTab} className="col-lg-4">
+                    <div id={styles.searchTab} className={SearchTabSize}>
                         <input type="text" name="query" placeholder="Search..."></input>
                     </div>
 
@@ -40,12 +53,7 @@ export function SearchPanel({ isProduct }) {
 
 
                     {/* <img src="../sort.png" alt="" /> */}
-                    <div id={styles.sorting} className="col-lg-2">
-                        <select>
-                            <option>Пункт 1</option>
-                            <option>Пункт 2</option>
-                        </select>
-                    </div>
+                    {СurrentPanel}
 
                     <button id={styles.searchButton} className='btn btn-danger col-lg-2'>
                         Show
