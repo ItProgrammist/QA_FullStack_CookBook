@@ -10,12 +10,16 @@ namespace api.Models
 {
     public class Product
     {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
         [Required(ErrorMessage = "The name of the product shouldn't be empty")]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Minimal length: 2 characters")]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(5)]
-        public List<string>? ImageUrls { get; set; } = new();
+        // [MaxLength(5)]
+        // public List<ProductImage> Images { get; set; } = new();
+        public List<ProductImage> Images { get; set; } = new();
 
         [Required(ErrorMessage = "The calories shouldn't be empty")]
         [Range(0, double.MaxValue)]
@@ -33,6 +37,7 @@ namespace api.Models
         [Range(0, 100)]
         public double Carbohydrates { get; set; }
 
+        [Column(TypeName = "nvarchar(MAX)")]
         public string? Ingredients { get; set; } = null;
 
         [Required(ErrorMessage = "The category shouldn't be empty")]
@@ -44,11 +49,43 @@ namespace api.Models
         [Required]
         public ProductFlags Flags { get; set; } = ProductFlags.None;
 
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        // [Required]
+        // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        // public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime? UpdatedAt { get; private set; }
+        // [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        // public DateTime? UpdatedAt { get; private set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    // public class ProductImage
+    // {
+    //     [Key]
+    //     public Guid Id { get; set; } = Guid.NewGuid();
+
+    //     [Required]
+    //     public string Url { get; set; } = string.Empty;
+
+    //     [Required]
+    //     public Guid ProductId { get; set; }
+
+    //     public Product Product { get; set; } = null!;
+    // }
+
+    [Table("ProductImages")]
+    public class ProductImage
+    {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        [Required]
+        public byte[] Data { get; set; } = Array.Empty<byte>();
+
+        [Required]
+        public string ContentType { get; set; } = "image/jpeg";
+
+        public Guid ProductId { get; set; }
+        public Product Product { get; set; } = null!;
     }
 }

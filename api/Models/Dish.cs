@@ -10,12 +10,17 @@ namespace api.Models
 {
     public class Dish
     {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
         [Required(ErrorMessage = "The name of the product shouldn't be empty")]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Minimal length: 2 characters")]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(5)]
-        public List<string>? ImageUrls { get; set; } = new();
+        // [MaxLength(5)]
+        // public List<DishImage> Images { get; set; } = new();
+        public List<DishImage> Images { get; set; } = new();
+
 
         [Required]
         [Range(0, double.MaxValue)]
@@ -46,15 +51,15 @@ namespace api.Models
 
         public DishFlags Flags { get; set; } = DishFlags.None;
 
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime? UpdatedAt { get; private set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public class DishIngredient
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid(); // Собственный ID записи
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         [ForeignKey("Dish")]
         public Guid DishId { get; set; }
@@ -68,6 +73,36 @@ namespace api.Models
         [Required]
         [Range(0.01, double.MaxValue)]
         public double Amount { get; set; }
+    }
+
+    // public class DishImage
+    // {
+    //     [Key]
+    //     public Guid Id { get; set; } = Guid.NewGuid();
+
+    //     [Required]
+    //     public string Url { get; set; } = string.Empty;
+
+    //     [Required]
+    //     public Guid DishId { get; set; }
+
+    //     public Dish Dish { get; set; } = null!;
+    // }
+
+    [Table("DishImages")]
+    public class DishImage
+    {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        [Required]
+        public byte[] Data { get; set; } = Array.Empty<byte>();
+
+        [Required]
+        public string ContentType { get; set; } = "image/jpeg";
+
+        public Guid DishId { get; set; }
+        public Dish Dish { get; set; } = null!;
     }
 
 }
