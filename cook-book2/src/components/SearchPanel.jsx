@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import styles from './scss/SearchPanel.module.scss'
 import { Link } from 'react-router-dom'
 import { ModalWindowProduct } from './ModalWindowProduct'

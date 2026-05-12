@@ -50,11 +50,75 @@
 #addBtn {
     width: 100%;
     float: left;
-    margin-top: 25.5px;
-    height: 63%;
+    height: 100%;
 }
 
 #fileCaption {
     font-size: 14px;
     float: left;
+}
+
+.flagsField {
+    div {
+        width: 20%;
+        margin-left: 10px;
+    }
+
+    .flagClear {
+        padding: 5px;
+        font-size: 12px;
+        border-radius: 20px;
+        margin-left: 50px;
+    }
+
+    .flagClear:hover {
+        cursor: pointer;
+        background-color: black;
+    }
+
+    .flagCard:hover {
+        cursor: pointer;
+        background-color: #ffc107;
+        color: black;
+    }
+}
+
+.flagCard {
+    font-size: 12px;
+    color: white;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+
+.ingredientsField {
+    div {
+        width: 20%;
+        margin-left: 10px;
+    }
+
+    .ingredientsClear {
+        padding: 5px;
+        font-size: 12px;
+        border-radius: 20px;
+        margin-left: 50px;
+    }
+
+    .ingredientsClear:hover {
+        cursor: default;
+        background-color: black;
+    }
+
+    .ingredientsCard:hover {
+        cursor: default;
+        background-color: #ffc107;
+        color: black;
+    }
+}
+
+.ingredientsCard {
+    font-size: 12px;
+    color: white;
+    padding: 5px;
+    border-radius: 20px;
 }
