@@ -19,7 +19,6 @@ namespace api.Dtos.Dish
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
-        // Используем вложенные DTO классы без ссылок на Models
         // public List<DishImageDto> Images { get; set; } = new();
         public List<FileDishImageDto> Images { get; set; } = new();
 

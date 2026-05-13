@@ -1,8 +1,8 @@
 #mainModal {
     background-color: rgba(0, 0, 0, 0.5);
     display: block;
-    position: fixed; 
-    top: 0; 
+    position: fixed;
+    top: 0;
     bottom: 0;
     left: 0;
 }
@@ -52,11 +52,80 @@
 #addBtn {
     width: 100%;
     float: left;
-    margin-top: 25.5px;
-    height: 63%;
+    height: 100%;
 }
 
 #fileCaption {
     font-size: 14px;
     float: left;
+}
+
+.flagsField {
+    div {
+        width: max-content;
+        margin-left: 10px;
+    }
+
+    .flagClear {
+        position: absolute;
+        right: 15%;
+        padding: 5px;
+        font-size: 12px;
+        border-radius: 20px;
+        margin-left: 50px;
+        width: 15%;
+        text-align: center;
+    }
+
+    .flagClear:hover {
+        cursor: pointer;
+        background-color: black;
+    }
+
+    .flagCard:hover {
+        cursor: pointer;
+        background-color: #ffc107;
+        color: black;
+    }
+}
+
+.flagCard {
+    font-size: 12px;
+    color: white;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+
+.ingredientsField {
+    div {
+        width: max-content;
+        margin-left: 10px;
+    }
+
+    .ingredientsClear {
+        padding: 5px;
+        font-size: 12px;
+        border-radius: 20px;
+        margin-left: 50px;
+    }
+
+    .ingredientsClear:hover {
+        cursor: default;
+        background-color: black;
+    }
+
+
+}
+
+.ingredientsCard {
+    font-size: 12px;
+    color: white;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+.ingredientsCard:hover {
+    cursor: default;
+    color: black;
 }

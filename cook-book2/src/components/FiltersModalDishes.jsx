@@ -1,28 +1,27 @@
-import { useState, useRef } from 'react'
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-unused-vars */
+import { useState } from 'react'
 import styles from './scss/FiltersModalDishes.module.scss'
-import { Link } from 'react-router-dom'
-import { Header } from './Header'
 
-
-export function FiltersModalDishes({ isVisible, onClose }) {
+export function FiltersModalDishes({ isVisible, onClose, currentFilters, onFiltersChange }) {
     if (!isVisible) return null;
 
-    const fileInputRef = useRef(null)
-    const [fileName, setFileName] = useState("");
+    const [category, setCategory] = useState(currentFilters?.category ?? "");
+    const [flags, setFlags] = useState(currentFilters?.flags ?? "");
 
-    const openDialog = () => {
-        fileInputRef.current.click()
-    }
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setFileName(file.name);
-        }
+    const handleSave = (e) => {
+        e.preventDefault();
+        
+        onFiltersChange({
+            category: category !== "" ? parseInt(category, 10) : "",
+            flags: flags !== "" ? parseInt(flags, 10) : ""
+        });
+        
+        onClose();
     };
 
     return (
-        <div id={styles.mainModal} className="modal fade show" tabIndex="-1">
+        <div id={styles.mainModal} className="modal fade show" tabIndex="-1" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
             <div className="modal-dialog">
                 <div id={styles.modalContent} className="modal-content">
                     <div className="modal-header">
@@ -30,48 +29,41 @@ export function FiltersModalDishes({ isVisible, onClose }) {
                         <button data-bs-theme="dark" type="button" className="btn-close" onClick={onClose}></button>
                     </div>
                     <div className="modal-body">
-                        <form>
+                        <form onSubmit={handleSave}>
                             <div className="container">
                                 <div id={styles.formGroups} className="row">
+                                    
+                                    {/* Селект категории с числовыми привязками Enum твоего бэкенда для Dish */}
+                                    <div id={styles.selectSearch} className="form-group col-lg-12 mb-3">
+                                        <label>Category</label>
+                                        <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)} >
+                                            <option value="">All Categories</option>
+                                            <option value="0">Dessert</option>
+                                            <option value="1">FirstCourse</option>
+                                            <option value="2">SecondCourse</option>
+                                            <option value="3">Drink</option>
+                                            <option value="4">Salad</option>
+                                            <option value="5">Soup</option>
+                                            <option value="6">Snack</option>
+                                        </select>
+                                    </div>
 
-                                    <div id={styles.selectSearch} className="form-group col-lg-12">
-                                        <label htmlFor="exampleInput2">Category</label>
-                                        <input placeholder="Category" type="text" className="form-control" list="brow"></input>
-                                        <datalist id="brow">
-                                            <option value="Десерт"></option>
-                                            <option value="Первое"></option>
-                                            <option value="Второе"></option>
-                                            <option value="Напиток"></option>
-                                            <option value="Салат"></option>
-                                            <option value="Суп"></option>
-                                            <option value="Перекус"></option>
-                                        </datalist>
-                                    </div>
-                                    <div id={styles.selectSearch} className="form-group col-lg-9">
-                                        <label htmlFor="exampleInput2">Flags</label>
-                                        <input placeholder="Flags" type="text" className="form-control" list="brow2"></input>
-                                        <datalist id="brow2">
-                                            <option value="Веган"></option>
-                                            <option value="Без глютена"></option>
-                                            <option value="Без сахара"></option>
-                                        </datalist>
-                                    </div>
-                                    <div className="col-lg-3">
-                                        <button id={styles.addBtn} className="btn btn-warning">Add</button>
+                                    {/* Селект флагов с числовыми привязками Enum бэкенда */}
+                                    <div id={styles.selectSearch} className="form-group col-lg-12 mb-4">
+                                        <label>Flags</label>
+                                        <select className="form-control" value={flags} onChange={(e) => setFlags(e.target.value)} >
+                                            <option value="">No/Any flags</option>
+                                            <option value="1">Vegan</option>
+                                            <option value="2">Gluten Free</option>
+                                            <option value="3">Sugar Free</option>
+                                        </select>
                                     </div>
 
                                     <div className="col-lg-12">
-                                        <button id={styles.submitBtn} type="submit" className="btn btn-warning">Save</button>
+                                        <button id={styles.submitBtn} type="submit" className="btn btn-warning w-100">Save</button>
                                     </div>
-
-                                    <div className='col-lg-12'>
-                                        {fileName && <p id={styles.fileCaption}>Selected file: {fileName}</p>}
-                                    </div>
-
-
                                 </div>
                             </div>
-
                         </form>
                     </div>
                     <div className="modal-footer">
@@ -81,4 +73,4 @@ export function FiltersModalDishes({ isVisible, onClose }) {
             </div>
         </div>
     );
-};
+}

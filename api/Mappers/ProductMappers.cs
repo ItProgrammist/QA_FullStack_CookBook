@@ -37,7 +37,6 @@ namespace api.Mappers
             return new FileProductImageDto
             {
                 Id = imageModel.Id,
-                // Binary Data -> Base64 String
                 Base64Data = Convert.ToBase64String(imageModel.Data),
                 ContentType = imageModel.ContentType
             };
@@ -58,7 +57,6 @@ namespace api.Mappers
                 Flags = productDto.Flags,
                 CreatedAt = DateTime.UtcNow,
                 
-                // Base64 String from Client -> byte[] for DB
                 Images = productDto.Images?
                     .Select(imgDto => new api.Models.ProductImage 
                     { 

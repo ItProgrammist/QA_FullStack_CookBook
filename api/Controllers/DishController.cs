@@ -21,16 +21,39 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetAll(
+            [FromQuery] string? search,
+            [FromQuery] int? category,
+            [FromQuery] int? flags)
         {
-            var dishes = _context.Dishes
+            var query = _context.Dishes
                 .Include(d => d.Images)
                 .Include(d => d.Ingredients)
                     .ThenInclude(i => i.Product)
-                .ToList()
-                .Select(s => s.ToDishDto());
+                .AsQueryable();
+
+            if (category.HasValue)
+            {
+                query = query.Where(d => (int)d.Category == category.Value);
+            }
+
+            if (flags.HasValue && flags.Value > 0)
+            {
+                query = query.Where(d => (int)d.Flags == flags.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(d => d.Name.Contains(search));
+            }
+
+            query = query.OrderBy(d => d.Name);
+
+            var dishes = query.ToList().Select(s => s.ToDishDto());
+
             return Ok(dishes);
         }
+
 
         [HttpGet("{id}")]
         public IActionResult GetById([FromRoute] Guid id)
@@ -42,15 +65,30 @@ namespace api.Controllers
                 .FirstOrDefault(x => x.Id == id);
 
             if (dish == null) return NotFound();
-            
+
             return Ok(dish.ToDishDto());
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] CreateDishRequestDto dishDto)
         {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            foreach (var ingredient in dishDto.Ingredients)
+            {
+                var productExists = _context.Products.Any(p => p.Id == ingredient.ProductId);
+                if (!productExists)
+                {
+                    return BadRequest($"Продукт с ID {ingredient.ProductId} не существует в системе. Сначала создайте продукт.");
+                }
+            }
+
             var dishModel = dishDto.ToDishFromCreateDTO();
-            
+
             _context.Dishes.Add(dishModel);
             _context.SaveChanges();
 
@@ -71,10 +109,10 @@ namespace api.Controllers
 
             var oldIngredients = _context.DishIngredients.Where(i => i.DishId == id);
             var oldImages = _context.DishImages.Where(img => img.DishId == id);
-            
+
             _context.DishIngredients.RemoveRange(oldIngredients);
             _context.DishImages.RemoveRange(oldImages);
-            _context.SaveChanges(); // Фиксируем очистку
+            _context.SaveChanges();
 
             dishModel.Name = dishDto.Name;
             dishModel.Calories = dishDto.Calories;
@@ -90,11 +128,11 @@ namespace api.Controllers
             {
                 foreach (var i in dishDto.Ingredients)
                 {
-                    _context.DishIngredients.Add(new DishIngredient 
-                    { 
-                        DishId = id, 
-                        ProductId = i.ProductId, 
-                        Amount = i.Amount 
+                    _context.DishIngredients.Add(new DishIngredient
+                    {
+                        DishId = id,
+                        ProductId = i.ProductId,
+                        Amount = i.Amount
                     });
                 }
             }
@@ -103,16 +141,16 @@ namespace api.Controllers
             {
                 foreach (var imgDto in dishDto.Images)
                 {
-                    _context.DishImages.Add(new DishImage 
-                    { 
-                        DishId = id, 
+                    _context.DishImages.Add(new DishImage
+                    {
+                        DishId = id,
                         Data = Convert.FromBase64String(imgDto.Base64Data),
                         ContentType = imgDto.ContentType
                     });
                 }
             }
 
-            try 
+            try
             {
                 _context.SaveChanges();
             }

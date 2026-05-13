@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useRef, useEffect } from 'react'
 import styles from './scss/ModalWindowDish.module.scss'
@@ -64,6 +65,36 @@ export function ModalWindowDish({ isVisible, onClose }) {
     const openDialog = () => {
         fileInputRef.current.click()
     }
+
+    const recalculateMacros = (ingredientsList) => {
+        let totalCalories = 0;
+        let totalProteins = 0;
+        let totalFats = 0;
+        let totalCarbohydrates = 0;
+
+        ingredientsList.forEach(item => {
+            const origProduct = allProducts.find(p => p.id === item.productId);
+            if (origProduct) {
+                totalCalories += (origProduct.calories * item.amount) / 100;
+                totalProteins += (origProduct.proteins * item.amount) / 100;
+                totalFats += (origProduct.fats * item.amount) / 100;
+                totalCarbohydrates += (origProduct.carbohydrates * item.amount) / 100;
+            }
+        });
+
+        setFormData(prev => ({
+            ...prev,
+            calories: (Math.round(totalCalories * 100) / 100).toString(),
+            proteins: (Math.round(totalProteins * 100) / 100).toString(),
+            fats: (Math.round(totalFats * 100) / 100).toString(),
+            carbohydrates: (Math.round(totalCarbohydrates * 100) / 100).toString()
+        }));
+
+        setErrors(prev => ({
+            ...prev,
+            calories: "", proteins: "", fats: "", carbohydrates: ""
+        }));
+    };
 
     const toBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -178,6 +209,8 @@ export function ModalWindowDish({ isVisible, onClose }) {
             ingredients: updatedIngredients.map(i => ({ productId: i.productId, amount: i.amount }))
         }));
 
+        recalculateMacros(updatedIngredients);
+
         setSearchQuery("");
         setErrors(prev => ({ ...prev, ingredients: "" }));
     };
@@ -189,6 +222,8 @@ export function ModalWindowDish({ isVisible, onClose }) {
             ...prev,
             ingredients: updatedIngredients.map(i => ({ productId: i.productId, amount: i.amount }))
         }));
+
+        recalculateMacros(updatedIngredients);
     };
 
     const handleFlagSelect = (flagValue) => {
@@ -285,24 +320,26 @@ export function ModalWindowDish({ isVisible, onClose }) {
 
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput3">Cal.</label>
-                                        <input type="text" className="form-control" id="exampleInput3" placeholder="420" onChange={handleInputChange} />
+                                        {/* ДОБАВЛЕН value={formData.calories} */}
+                                        <input type="text" className="form-control" id="exampleInput3" value={formData.calories} placeholder="420" onChange={handleInputChange} />
                                         {errors.calories && <small style={errorStyle}>{errors.calories}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput4">Proteins</label>
-                                        <input type="text" className="form-control" id="exampleInput4" placeholder="8" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput4" value={formData.proteins} placeholder="8" onChange={handleInputChange} />
                                         {errors.proteins && <small style={errorStyle}>{errors.proteins}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput5">Fats</label>
-                                        <input type="text" className="form-control" id="exampleInput5" placeholder="12" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput5" value={formData.fats} placeholder="12" onChange={handleInputChange} />
                                         {errors.fats && <small style={errorStyle}>{errors.fats}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput6">Carbs.</label>
-                                        <input type="text" className="form-control" id="exampleInput6" placeholder="54" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput6" value={formData.carbohydrates} placeholder="54" onChange={handleInputChange} />
                                         {errors.carbohydrates && <small style={errorStyle}>{errors.carbohydrates}</small>}
                                     </div>
+
                                     <div className="form-group">
                                         <label htmlFor="exampleInput7">Category</label>
                                         <input placeholder="Category ID (0-6)" type="text" className="form-control" id="exampleInput7_input" list="brow2" onChange={handleInputChange} />

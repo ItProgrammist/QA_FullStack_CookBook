@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useRef } from 'react'
 import styles from './scss/ModalWindowProduct.module.scss'
@@ -103,16 +104,19 @@ export function ModalWindowProduct({ isVisible, onClose }) {
       'exampleCheck1': 'cookingNecessity'
     };
 
-    const fieldName = fieldMap[id] || id;
+    let fieldName = fieldMap[id] || id;
+    let finalValue = value;
 
     if (['calories', 'proteins', 'fats', 'carbohydrates', 'category'].includes(fieldName)) {
       const errorMsg = validateField(fieldName, value);
       setErrors(prev => ({ ...prev, [fieldName]: errorMsg }));
     }
 
-    let finalValue = value;
-    if (type === 'checkbox') {
-      finalValue = checked ? 1 : 0;
+    if (type === 'radio') {
+      fieldName = 'cookingNecessity';
+      finalValue = parseInt(value, 10);
+    } else if (type === 'number') {
+      finalValue = parseFloat(value) || 0;
     } else if (fieldName === 'category') {
       finalValue = value !== "" && !isNaN(value) ? parseInt(value, 10) : value;
     } else if (['calories', 'proteins', 'fats', 'carbohydrates'].includes(fieldName)) {
@@ -187,13 +191,6 @@ export function ModalWindowProduct({ isVisible, onClose }) {
                   <div id={styles.selectSearch} className="form-group col-lg-12">
                     <label htmlFor="exampleInput2">Ingredients</label>
                     <input placeholder="Ingredients" type="text" className="form-control" id="exampleInput2" list="brow" onChange={handleInputChange} />
-                    <datalist id="brow">
-                      <option value="Internet Explorer"></option>
-                      <option value="Firefox"></option>
-                      <option value="Chrome"></option>
-                      <option value="Opera"></option>
-                      <option value="Safari"></option>
-                    </datalist>
                   </div>
                   <div className="form-group col-lg-3">
                     <label htmlFor="exampleInput3">Cal.</label>
@@ -231,9 +228,26 @@ export function ModalWindowProduct({ isVisible, onClose }) {
                       <option value="8">Sweets</option>
                     </datalist>
                   </div>
-                  <div id={styles.checkInput} className="form-check col-lg-12">
+                  {/* <div id={styles.checkInput} className="form-check col-lg-12">
                     <input type="checkbox" className="form-check-input" id="exampleCheck1" onChange={handleInputChange} />
                     <label className="form-check-label" htmlFor="exampleCheck1">Needs cooking</label>
+                  </div> */}
+                  <div id={styles.checkInput} className="row my-3">
+                    <label className="d-block col-lg-12 mb-2" style={{ fontWeight: 'bold' }}>Cooking Necessity:</label>
+                    <br />
+                    <br />
+                    <div className="form-check form-check-inline col-lg-4 me-3" style={{ display: 'inline-block', marginRight: '15px' }}>
+                      <input className="form-check-input" type="radio" name="cookingNecessity" id="radioReadyToEat" value="0" checked={formData.cookingNecessity === 0} onChange={handleInputChange} />
+                      <label className="form-check-label" htmlFor="radioReadyToEat" style={{ marginLeft: '5px' }}>Ready To Eat</label>
+                    </div>
+                    <div className="form-check form-check-inline col-lg-4 me-3" style={{ display: 'inline-block', marginRight: '15px' }}>
+                      <input className="form-check-input" type="radio" name="cookingNecessity" id="radioSemiFinished" value="1" checked={formData.cookingNecessity === 1} onChange={handleInputChange} />
+                      <label className="form-check-label" htmlFor="radioSemiFinished" style={{ marginLeft: '5px' }}>Semi Finished</label>
+                    </div>
+                    <div className="form-check form-check-inline col-lg-4" style={{ display: 'inline-block' }}>
+                      <input className="form-check-input" type="radio" name="cookingNecessity" id="radioRequiresCooking" value="2" checked={formData.cookingNecessity === 2} onChange={handleInputChange} />
+                      <label className="form-check-label" htmlFor="radioRequiresCooking" style={{ marginLeft: '5px' }}>Requires Cooking</label>
+                    </div>
                   </div>
 
                   <div className={`${styles.flagsField} col-lg-12 row`}>

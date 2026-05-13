@@ -5,7 +5,7 @@ using static api.Enums.DishEnums;
 
 namespace api.Dtos.Dish
 {
-    public class UpdateDishRequestDto
+    public class UpdateDishRequestDto : IValidatableObject
     {
         [Required]
         [StringLength(50, MinimumLength = 2)]
@@ -35,6 +35,18 @@ namespace api.Dtos.Dish
         public DishCategory Category { get; set; }
 
         public DishFlags Flags { get; set; } = DishFlags.None;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            double totalMacros = Proteins + Fats + Carbohydrates;
+            if (totalMacros > 100)
+            {
+                yield return new ValidationResult(
+                    $"Сумма БЖУ ({totalMacros}г) не может превышать 100 грамм.",
+                    new[] { nameof(Proteins), nameof(Fats), nameof(Carbohydrates) }
+                );
+            }
+        }
     }
 
     public class UpdateDishFileImageDto

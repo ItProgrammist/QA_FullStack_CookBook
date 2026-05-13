@@ -21,14 +21,57 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetAll(
+            [FromQuery] string? search,
+            [FromQuery] int? category,
+            [FromQuery] int? cookingNecessity,
+            [FromQuery] int? flags,
+            [FromQuery] string? sortBy)
         {
-            var products = _context.Products
-                .Include(p => p.Images)
-                .ToList()
-                .Select(s => s.ToProductDto());
+            var query = _context.Products.Include(p => p.Images).AsQueryable();
+
+            if (category.HasValue)
+            {
+                query = query.Where(p => (int)p.Category == category.Value);
+            }
+
+            if (cookingNecessity.HasValue)
+            {
+                query = query.Where(p => (int)p.CookingNecessity == cookingNecessity.Value);
+            }
+
+            if (flags.HasValue && flags.Value > 0)
+            {
+                query = query.Where(p => (int)p.Flags == flags.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p => p.Name.Contains(search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                query = sortBy.ToLower() switch
+                {
+                    "calories" => query.OrderBy(p => p.Calories),
+                    "proteins" => query.OrderBy(p => p.Proteins),
+                    "fats" => query.OrderBy(p => p.Fats),
+                    "carbohydrates" => query.OrderBy(p => p.Carbohydrates),
+                    "name" => query.OrderBy(p => p.Name),
+                    _ => query.OrderBy(p => p.Name)
+                };
+            }
+            else
+            {
+                query = query.OrderBy(p => p.Name);
+            }
+
+            var products = query.ToList().Select(s => s.ToProductDto());
+
             return Ok(products);
         }
+
 
         [HttpGet("{id}")]
         public IActionResult GetById([FromRoute] Guid id)
@@ -38,7 +81,7 @@ namespace api.Controllers
                 .FirstOrDefault(x => x.Id == id);
 
             if (product == null) return NotFound();
-            
+
             return Ok(product.ToProductDto());
         }
 
@@ -48,20 +91,22 @@ namespace api.Controllers
             var productModel = productDto.ToProductFromCreateDTO();
             _context.Products.Add(productModel);
             _context.SaveChanges();
-            
+
             _context.Entry(productModel).Collection(p => p.Images).Load();
-            
+
             return CreatedAtAction(nameof(GetById), new { id = productModel.Id }, productModel.ToProductDto());
         }
 
         [HttpPut("{id}")]
         public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateProductRequestDto productDto)
         {
-            var productModel = _context.Products
-                .Include(p => p.Images)
-                .FirstOrDefault(x => x.Id == id);
+            var productExists = _context.Products.Any(x => x.Id == id);
+            if (!productExists) return NotFound();
 
-            if (productModel == null) return NotFound();
+            var oldImages = _context.ProductImages.Where(img => img.ProductId == id);
+            _context.ProductImages.RemoveRange(oldImages);
+
+            var productModel = _context.Products.FirstOrDefault(x => x.Id == id);
 
             productModel.Name = productDto.Name;
             productModel.Calories = productDto.Calories;
@@ -74,32 +119,37 @@ namespace api.Controllers
             productModel.Flags = productDto.Flags;
             productModel.UpdatedAt = DateTime.UtcNow;
 
-            if (productModel.Images.Any())
+            if (productDto.Images != null)
             {
-                _context.ProductImages.RemoveRange(productModel.Images);
-                _context.SaveChanges();
+                foreach (var imgDto in productDto.Images)
+                {
+                    _context.ProductImages.Add(new ProductImage
+                    {
+                        ProductId = id,
+                        Data = Convert.FromBase64String(imgDto.Base64Data),
+                        ContentType = imgDto.ContentType
+                    });
+                }
             }
 
-            foreach (var imgDto in productDto.Images)
-            {
-                productModel.Images.Add(new ProductImage 
-                { 
-                    Data = Convert.FromBase64String(imgDto.Base64Data),
-                    ContentType = imgDto.ContentType
-                });
-            }
-
-            try 
+            try
             {
                 _context.SaveChanges();
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateConcurrencyException)
+            {
+                return StatusCode(500, "Ошибка параллельного доступа к базе данных. Попробуйте еще раз.");
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, "Ошибка при обновлении базы данных: " + ex.Message);
             }
 
+            _context.Entry(productModel).Collection(p => p.Images).Load();
+
             return Ok(productModel.ToProductDto());
         }
+
 
         [HttpDelete("{id:guid}")]
         public IActionResult Delete([FromRoute] Guid id)

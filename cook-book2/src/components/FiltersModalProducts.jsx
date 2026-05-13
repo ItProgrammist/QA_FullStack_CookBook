@@ -1,28 +1,29 @@
-import { useState, useRef } from 'react'
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from 'react'
 import styles from './scss/FiltersModalProducts.module.scss'
-import { Link } from 'react-router-dom'
-import { Header } from './Header'
 
-
-export function FiltersModalProducts({ isVisible, onClose }) {
+export function FiltersModalProducts({ isVisible, onClose, currentFilters, onFiltersChange }) {
   if (!isVisible) return null;
 
-  const fileInputRef = useRef(null)
-  const [fileName, setFileName] = useState("");
+  const [category, setCategory] = useState(currentFilters?.category ?? "");
+  const [flags, setFlags] = useState(currentFilters?.flags ?? "");
+  const [cookingNecessity, setNeedsCooking] = useState(currentFilters?.cookingNecessity ?? "");
 
-  const openDialog = () => {
-    fileInputRef.current.click()
-  }
+  const handleSave = (e) => {
+    e.preventDefault();
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFileName(file.name);
-    }
+    onFiltersChange({
+      category: category !== "" ? parseInt(category, 10) : "",
+      flags: flags !== "" ? parseInt(flags, 10) : "",
+      cookingNecessity: cookingNecessity !== "" ? parseInt(cookingNecessity, 10) : ""
+    });
+
+    onClose();
   };
 
   return (
-    <div id={styles.mainModal} className="modal fade show" tabIndex="-1">
+    <div id={styles.mainModal} className="modal fade show" tabIndex="-1" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
       <div className="modal-dialog">
         <div id={styles.modalContent} className="modal-content">
           <div className="modal-header">
@@ -30,53 +31,68 @@ export function FiltersModalProducts({ isVisible, onClose }) {
             <button data-bs-theme="dark" type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
-            <form>
+            <form onSubmit={handleSave}>
               <div className="container">
                 <div id={styles.formGroups} className="row">
 
-                  <div id={styles.selectSearch} className="form-group col-lg-12">
-                    <label htmlFor="exampleInput2">Category</label>
-                    <input placeholder="Category" type="text" className="form-control" list="brow"></input>
-                    <datalist id="brow">
-                      <option value="Замороженный"></option>
-                      <option value="Мясной"></option>
-                      <option value="Овощи"></option>
-                      <option value="Зелень"></option>
-                      <option value="Специи"></option>
-                    </datalist>
-                  </div>
-                  <div id={styles.selectSearch} className="form-group col-lg-9">
-                    <label htmlFor="exampleInput2">Flags</label>
-                    <input placeholder="Flags" type="text" className="form-control" list="brow2"></input>
-                    <datalist id="brow2">
-                      <option value="Веган"></option>
-                      <option value="Без глютена"></option>
-                      <option value="Без сахара"></option>
-                    </datalist>
-                  </div>
-                  <div className="col-lg-3">
-                    <button id={styles.addBtn} className="btn btn-warning">Add</button>
+                  {/* Селект категории с числовыми привязками Enum бэкенда */}
+                  <div id={styles.selectSearch} className="form-group col-lg-12 mb-3">
+                    <label>Category</label>
+                    <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)} >
+                      <option value="">All Categories</option>
+                      <option value="0">Frozen</option>
+                      <option value="1">Meat</option>
+                      <option value="2">Vegetables</option>
+                      <option value="3">Greens</option>
+                      <option value="4">Spices</option>
+                      <option value="5">Cereals</option>
+                      <option value="6">Canned</option>
+                      <option value="7">Liquid</option>
+                      <option value="8">Sweets</option>
+                    </select>
                   </div>
 
-                  <div id={styles.checkInput} className="form-check col-lg-12">
-                    <input type="checkbox" className="form-check-input" id="exampleCheck1"></input>
-                    <label className="form-check-label" htmlFor="exampleCheck1">Needs cooking</label>
+                  {/* Селект флагов с числовыми привязками Enum бэкенда */}
+                  <div id={styles.selectSearch} className="form-group col-lg-12 mb-3">
+                    <label>Flags</label>
+                    <select className="form-control" value={flags} onChange={(e) => setFlags(e.target.value)} >
+                      <option value="">No/Any flags</option>
+                      <option value="1">Vegan</option>
+                      <option value="2">Gluten Free</option>
+                      <option value="3">Sugar Free</option>
+                    </select>
                   </div>
-                  <br />
-                  <br />
+
+                  {/* Необходимость готовки — мапится на cookingNecessity */}
+                  <div id={styles.cookingNecessityFilters} className="row col-lg-12 mb-4">
+                    <br />
+                    <label id={styles.labelCaption} className="d-block mb-2" style={{ fontWeight: 'bold' }}>Filter by Cooking State:</label>
+
+                    <div className="form-check mb-1">
+                      <input className="form-check-input" type="radio" name="filterCooking" id="filterAllCooking" value="" checked={cookingNecessity === ""} onChange={(e) => setNeedsCooking(e.target.value)} />
+                      <label className="form-check-label" htmlFor="filterAllCooking" style={{ marginLeft: '5px' }}>All States</label>
+                    </div>
+
+                    {/* Безопасное сравнение через абстрактное равенство == вместо падения .toString() */}
+                    <div className="form-check mb-1">
+                      <input className="form-check-input" type="radio" name="filterCooking" id="filterReadyToEat" value="0" checked={cookingNecessity !== "" && cookingNecessity == 0} onChange={(e) => setNeedsCooking(parseInt(e.target.value, 10))} />
+                      <label className="form-check-label" htmlFor="filterReadyToEat" style={{ marginLeft: '5px' }}>Ready To Eat</label>
+                    </div>
+                    <div className="form-check mb-1">
+                      <input className="form-check-input" type="radio" name="filterCooking" id="filterSemiFinished" value="1" checked={cookingNecessity !== "" && cookingNecessity == 1} onChange={(e) => setNeedsCooking(parseInt(e.target.value, 10))} />
+                      <label className="form-check-label" htmlFor="filterSemiFinished" style={{ marginLeft: '5px' }}>Semi Finished</label>
+                    </div>
+                    <div className="form-check mb-1">
+                      <input className="form-check-input" type="radio" name="filterCooking" id="filterRequiresCooking" value="2" checked={cookingNecessity !== "" && cookingNecessity == 2} onChange={(e) => setNeedsCooking(parseInt(e.target.value, 10))} />
+                      <label className="form-check-label" htmlFor="filterRequiresCooking" style={{ marginLeft: '5px' }}>Requires Cooking</label>
+                    </div>
+                  </div>
 
                   <div className="col-lg-12">
-                    <button id={styles.submitBtn} type="submit" className="btn btn-warning">Save</button>
+                    <button id={styles.submitBtn} type="submit" className="btn btn-warning w-100">Save</button>
                   </div>
-
-                  <div className='col-lg-12'>
-                    {fileName && <p id={styles.fileCaption}>Selected file: {fileName}</p>}
-                  </div>
-
-
                 </div>
               </div>
-
             </form>
           </div>
           <div className="modal-footer">
@@ -86,4 +102,4 @@ export function FiltersModalProducts({ isVisible, onClose }) {
       </div>
     </div>
   );
-};
+}

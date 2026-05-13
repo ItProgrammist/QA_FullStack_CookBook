@@ -24,7 +24,6 @@ namespace api.Mappers
                 CreatedAt = dishModel.CreatedAt,
                 UpdatedAt = dishModel.UpdatedAt,
 
-                // Mapping Ingredients
                 Ingredients = dishModel.Ingredients?
                     .Select(i => new DishIngredientDto
                     {
@@ -33,11 +32,10 @@ namespace api.Mappers
                         Amount = i.Amount
                     }).ToList() ?? new List<DishIngredientDto>(),
 
-                // Mapping Images: byte[] -> Base64 String
                 Images = dishModel.Images?
                     .Select(img => new FileDishImageDto
                     {
-                        Id = img.Id, // Safe to include Id here
+                        Id = img.Id,
                         Base64Data = Convert.ToBase64String(img.Data),
                         ContentType = img.ContentType
                     }).ToList() ?? new List<FileDishImageDto>()
@@ -58,7 +56,6 @@ namespace api.Mappers
                 Flags = dishDto.Flags,
                 CreatedAt = DateTime.UtcNow,
 
-                // Mapping Ingredients for DB
                 Ingredients = dishDto.Ingredients?
                     .Select(i => new DishIngredient
                     {
@@ -66,7 +63,6 @@ namespace api.Mappers
                         Amount = i.Amount
                     }).ToList() ?? new List<DishIngredient>(),
 
-                // Mapping Images: Base64 String -> byte[]
                 Images = dishDto.Images?
                     .Select(imgDto => new DishImage
                     {
