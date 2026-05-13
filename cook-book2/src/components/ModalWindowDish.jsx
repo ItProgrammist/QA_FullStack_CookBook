@@ -10,14 +10,12 @@ export function ModalWindowDish({ isVisible, onClose }) {
     const fileInputRef = useRef(null)
     const [fileNames, setFileNames] = useState([]);
 
-    // Логика работы с ингредиентами
     const [searchQuery, setSearchQuery] = useState("");
     const [allProducts, setAllProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState("");
     const [chosenIngredients, setChosenIngredients] = useState([]);
 
-    // Стейт формы в соответствии с вашим UpdateDishRequestDto / CreateDishRequestDto
     const [formData, setFormData] = useState({
         name: "",
         calories: 0,
@@ -27,11 +25,10 @@ export function ModalWindowDish({ isVisible, onClose }) {
         portionSize: 0,
         category: 0,
         flags: 0,
-        ingredients: [], // Массив объектов { productId, amount }
-        images: []       // Массив объектов { base64Data, contentType }
+        ingredients: [],
+        images: []
     });
 
-    // Стейт ошибок валидации
     const [errors, setErrors] = useState({
         calories: "",
         proteins: "",
@@ -42,7 +39,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
         ingredients: ""
     });
 
-    // Загрузка доступных продуктов с сервера при открытии окна
     useEffect(() => {
         fetch('http://localhost:5254/api/product')
             .then(res => res.json())
@@ -50,10 +46,9 @@ export function ModalWindowDish({ isVisible, onClose }) {
             .catch(err => console.error("Failed to load products:", err));
     }, []);
 
-    // Фильтрация ингредиентов "на лету" (при вводе от 2-х символов)
     useEffect(() => {
         if (searchQuery.length >= 2) {
-            const filtered = allProducts.filter(p => 
+            const filtered = allProducts.filter(p =>
                 p.name.toLowerCase().startsWith(searchQuery.toLowerCase())
             );
             setFilteredProducts(filtered);
@@ -103,7 +98,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
 
     const validateField = (name, value) => {
         const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
-        const categoryRegex = /^[0-8]$/;
+        const categoryRegex = /^[0-6]$/;
 
         if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
             if (value === "") return "This field is required";
@@ -113,7 +108,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
 
         if (name === 'category') {
             if (value === "") return "Category is required";
-            if (!categoryRegex.test(value)) return "Category must be a single digit from 0 to 8";
+            if (!categoryRegex.test(value)) return "Category must be a single digit from 0 to 6";
         }
 
         return "";
@@ -122,7 +117,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
     const handleInputChange = (e) => {
         const { id, value } = e.target;
 
-        // Корректный маппинг ID ваших инпутов под свойства Dish модели бэкенда
         const fieldMap = {
             'exampleInputEmail1': 'name',
             'exampleInput3': 'calories',
@@ -134,7 +128,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
         };
 
         const fieldName = fieldMap[id] || id;
-        
+
         if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize', 'category'].includes(fieldName)) {
             const errorMsg = validateField(fieldName, value);
             setErrors(prev => ({ ...prev, [fieldName]: errorMsg }));
@@ -150,7 +144,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
         setFormData(prev => ({ ...prev, [fieldName]: finalValue }));
     };
 
-    // Добавление выбранного ингредиента из multiple select
     const handleAddIngredient = (e) => {
         e.preventDefault();
         if (!selectedProductId) {
@@ -158,7 +151,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
             return;
         }
 
-        // Запрос веса (Amount) для добавляемого ингредиента
         const amountInput = prompt("Enter the amount of this ingredient in grams:", "100");
         const amountNum = parseFloat(amountInput);
 
@@ -190,7 +182,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
         setErrors(prev => ({ ...prev, ingredients: "" }));
     };
 
-    // Удаление ингредиента крестиком
     const handleRemoveIngredient = (productId) => {
         const updatedIngredients = chosenIngredients.filter(i => i.productId !== productId);
         setChosenIngredients(updatedIngredients);
@@ -241,6 +232,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
             }
         } catch (error) {
             console.error("Connection error:", error);
+            alert("Server is unavailable! Check if Docker-container and ASP.NET Core are running");
         }
     };
 
@@ -264,13 +256,11 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         <label htmlFor="exampleInput1">Dish name</label>
                                         <input type="text" className="form-control" id="exampleInputEmail1" placeholder="e.g. Apple pie" onChange={handleInputChange} required />
                                     </div>
-                                    
-                                    {/* Ввод текста для фильтрации */}
+
                                     <div id={styles.selectSearch} className="form-group col-lg-9">
                                         <label htmlFor="exampleInput2">Ingredients</label>
                                         <input placeholder="Type 2+ letters to search..." type="text" className="form-control" id="exampleInput2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                                        
-                                        {/* Multiple select, отображающий отфильтрованные продукты */}
+
                                         {filteredProducts.length > 0 && (
                                             <select multiple className="form-control mt-2" style={{ height: '90px' }} value={[selectedProductId]} onChange={(e) => setSelectedProductId(e.target.value)}>
                                                 {filteredProducts.map(p => (
@@ -283,7 +273,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         <button id={styles.addBtn} type="button" className="btn btn-warning w-100" onClick={handleAddIngredient}>Add</button>
                                     </div>
 
-                                    {/* Вывод добавленных ингредиентов под селектом в виде флагов с крестиком */}
                                     <div className={`${styles.ingredientsField} col-lg-12 row my-2`}>
                                         {chosenIngredients.map(i => (
                                             <div key={i.productId} className={`${styles.ingredientsCard} col-lg-4 d-flex justify-content-between align-items-center`} style={{ backgroundColor: '#5a6268', marginBottom: '5px', marginRight: '5px' }}>
@@ -316,18 +305,16 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="exampleInput7">Category</label>
-                                        <input placeholder="Category ID (0-8)" type="text" className="form-control" id="exampleInput7_input" list="brow2" onChange={handleInputChange} />
+                                        <input placeholder="Category ID (0-6)" type="text" className="form-control" id="exampleInput7_input" list="brow2" onChange={handleInputChange} />
                                         {errors.category && <small style={errorStyle}>{errors.category}</small>}
                                         <datalist id="brow2">
-                                            <option value="0">Frozen</option>
-                                            <option value="1">Meat</option>
-                                            <option value="2">Vegetables</option>
-                                            <option value="3">Greens</option>
-                                            <option value="4">Spices</option>
-                                            <option value="5">Cereals</option>
-                                            <option value="6">Canned</option>
-                                            <option value="7">Liquid</option>
-                                            <option value="8">Sweets</option>
+                                            <option value="0">Dessert</option>
+                                            <option value="1">FirstCourse</option>
+                                            <option value="2">SecondCourse</option>
+                                            <option value="3">Drink</option>
+                                            <option value="4">Salad</option>
+                                            <option value="5">Soup</option>
+                                            <option value="6">Snack</option>
                                         </datalist>
                                     </div>
                                     <div className="form-group col-lg-12">
@@ -336,7 +323,6 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                         {errors.portionSize && <small style={errorStyle}>{errors.portionSize}</small>}
                                     </div>
 
-                                    {/* Блок Флагов блюда */}
                                     <div className={`${styles.flagsField} col-lg-12 row my-2`}>
                                         <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 1 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
                                         <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 2 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>

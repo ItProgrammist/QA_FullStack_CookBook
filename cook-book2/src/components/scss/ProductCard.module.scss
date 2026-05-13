@@ -26,11 +26,9 @@
 
 #editSection img,
 #deleteSection img {
-
-    width: 2.5%;
-    height: 3.5%;
+    height: 2.5%;
     position: absolute;
-    margin-top: 20px;
+    margin-top: -20px;
     margin-left: 50px;
     
 }
@@ -38,4 +36,20 @@
 #editSection img:hover,
 #deleteSection img:hover {
     cursor: pointer;
+}
+#caloriesCount, #productCategory, #cookingState {
+    color: #ffca43;
+}
+
+#productFlags {
+    font-size: 14px;
+    color: black;
+    background-color: #e4a300;
+    width: max-content;
+    padding: 7px 10px 7px 10px;
+    border-radius: 20px;
+}
+
+#dishFlags:hover {
+    cursor: default;
 }

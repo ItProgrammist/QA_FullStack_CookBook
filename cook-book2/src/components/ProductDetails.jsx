@@ -1,18 +1,21 @@
-import { useState, useRef } from 'react'
+/* eslint-disable no-unused-vars */
+// import { useState, useRef } from 'react'
 import styles from './scss/ProductDetails.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
 
 
-export function ProductDetails({ isVisible, onClose }) {
+export function ProductDetails({ product, isVisible, onClose }) {
     if (!isVisible) return null;
+
+    console.log(product)
 
     return (
         <div id={styles.mainModal} className="modal fade show" tabIndex="-1">
             <div className="modal-dialog">
                 <div id={styles.modalContent} className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">"<span></span>"</h5>
+                        <h5 className="modal-title">"<span>{product.name}</span>"</h5>
                         <button data-bs-theme="dark" type="button" className="btn-close" onClick={onClose}></button>
                     </div>
                     <div className="modal-body">
@@ -22,13 +25,13 @@ export function ProductDetails({ isVisible, onClose }) {
 
                                     <div className={styles.ingredients}>
                                         <h5>Ingredients:</h5>
-                                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, possimus. Placeat debitis non esse quod consectetur aliquid? Alias ab totam architecto beatae iusto aliquid maiores, consequatur mollitia rerum eaque iste.</p>
+                                        <p>{product.ingredients}</p>
                                     </div>
 
                                     <div className={styles.macros}>
-                                        <h5>Proteins: <span></span></h5>
-                                        <h5>Fats: <span></span></h5>
-                                        <h5>Carbs: <span></span></h5>
+                                        <h5>Proteins: <span>{product.proteins}</span></h5>
+                                        <h5>Fats: <span>{product.fats}</span></h5>
+                                        <h5>Carbs: <span>{product.carbohydrates}</span></h5>
                                     </div>
 
                                 </div>

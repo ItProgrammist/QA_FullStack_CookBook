@@ -7,7 +7,6 @@ export function ModalWindowProduct({ isVisible, onClose }) {
 
   const fileInputRef = useRef(null)
 
-  // 1. ИЗМЕНЕНИЕ: Храним массив имен файлов для отображения
   const [fileNames, setFileNames] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -20,7 +19,7 @@ export function ModalWindowProduct({ isVisible, onClose }) {
     category: 0,
     cookingNecessity: 0,
     flags: 0,
-    images: [] // Сюда будет складываться массив объектов { base64Data, contentType }
+    images: []
   });
 
   const [errors, setErrors] = useState({
@@ -35,7 +34,6 @@ export function ModalWindowProduct({ isVisible, onClose }) {
     fileInputRef.current.click()
   }
 
-  // Функция конвертации ОДНОГО файла в Base64
   const toBase64 = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -46,15 +44,12 @@ export function ModalWindowProduct({ isVisible, onClose }) {
     reader.onerror = (error) => reject(error);
   });
 
-  // 2. ИЗМЕНЕНИЕ: Обработка МАССИВА файлов через Promise.all
   const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files); // Превращаем FileList в обычный массив C# style
+    const files = Array.from(event.target.files);
     if (files.length > 0) {
-      // Сохраняем имена всех выбранных файлов через запятую
       setFileNames(files.map(f => f.name));
 
       try {
-        // Читаем все файлы параллельно
         const uploadPromises = files.map(async (file) => {
           const base64 = await toBase64(file);
           return {
@@ -65,7 +60,6 @@ export function ModalWindowProduct({ isVisible, onClose }) {
 
         const mappedImages = await Promise.all(uploadPromises);
 
-        // Записываем весь массив картинок в formData
         setFormData(prev => ({
           ...prev,
           images: mappedImages
@@ -166,6 +160,7 @@ export function ModalWindowProduct({ isVisible, onClose }) {
       }
     } catch (error) {
       console.error("Connection error:", error);
+      alert("Server is unavailable! Check if Docker-container and ASP.NET Core are running");
     }
   };
 
@@ -251,14 +246,12 @@ export function ModalWindowProduct({ isVisible, onClose }) {
                   <br /><br />
                   <div className="col-lg-2">
                     <img onClick={openDialog} src="../pin.png" alt="upload" style={{ cursor: 'pointer' }} />
-                    {/* 3. ИЗМЕНЕНИЕ: Добавлен атрибут multiple */}
                     <input type="file" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} accept="image/*" multiple />
                   </div>
                   <div className="col-lg-10">
                     <button id={styles.submitBtn} type="submit" className="btn btn-warning" disabled={isFormInvalid}>Submit</button>
                   </div>
                   <div className='col-lg-12'>
-                    {/* 4. ИЗМЕНЕНИЕ: Выводим список всех выбранных файлов через запятую */}
                     {fileNames.length > 0 && <p id={styles.fileCaption}>Selected files: {fileNames.join(", ")}</p>}
                   </div>
                 </div>

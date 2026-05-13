@@ -14,30 +14,26 @@ export function ProductCard({ product }) {
     const [modalOpen2, setModalOpen2] = useState(false)
     const [modalOpen3, setModalOpen3] = useState(false)
 
-    // 1. Стейт для отслеживания текущего индекса картинки в карусели
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const hasImages = product.images && product.images.length > 0;
-    
-    // Получаем текущую активную картинку из массива
+
     const currentImage = hasImages ? product.images[currentImageIndex] : null;
 
-    // Собираем data-url строку из бинарных данных текущего элемента
-    const imageSrc = currentImage 
+    const imageSrc = currentImage
         ? `data:${currentImage.contentType};base64,${currentImage.base64Data}`
         : "../placeholder.png";
 
-    // Функции для перелистывания карусели (зацикленные)
     const handleNextImage = (e) => {
-        e.stopPropagation(); // Предотвращаем случайные клики по карточке
-        setCurrentImageIndex((prevIndex) => 
+        e.stopPropagation();
+        setCurrentImageIndex((prevIndex) =>
             prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
         );
     };
 
     const handlePrevImage = (e) => {
         e.stopPropagation();
-        setCurrentImageIndex((prevIndex) => 
+        setCurrentImageIndex((prevIndex) =>
             prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
         );
     };
@@ -60,14 +56,12 @@ export function ProductCard({ product }) {
         2: "#glutenFree",
         3: "#sugarFree"
     };
-
     const cookingStates = {
-        0: "Raw",
-        1: "Ready-to-heat",
-        2: "Ready-to-eat"
+        0: "ReadyToEat",
+        1: "SemiFinished",
+        2: "RequiresCooking"
     };
 
-    // Инлайн-стили для стрелочек поверх картинки
     const arrowButtonStyle = {
         position: 'absolute',
         top: '50%',
@@ -88,83 +82,67 @@ export function ProductCard({ product }) {
     };
 
     return (
-        <div>
-            <div className={styles.cardBody}>
-                
-                {/* 2. Контейнер для картинки с относительным позиционированием для стрелочек */}
-                <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden' }}>
-                    
-                    {/* Стрелочка НАЗАД (показывается только если картинок больше 1) */}
+        <div className="w-100 d-flex flex-column" style={{ height: '100%' }}>
+            <div className={`${styles.cardBody} d-flex flex-column flex-grow-1`} style={{ height: '100%' }}>
+
+                {/* Контейнер карусели картинок */}
+                <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
                     {hasImages && product.images.length > 1 && (
-                        <button 
-                            style={{ ...arrowButtonStyle, left: '10px' }} 
-                            onClick={handlePrevImage}
-                        >
-                            &#10094;
-                        </button>
+                        <button style={{ ...arrowButtonStyle, left: '10px' }} onClick={handlePrevImage}>&#10094;</button>
                     )}
 
-                    <img 
-                        src={imageSrc} 
-                        alt={product.name} 
-                        style={{ objectFit: 'cover', width: '100%', height: '100%' }} 
-                    />
+                    <img src={imageSrc} alt={product.name} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
 
-                    {/* Стрелочка ВПЕРЕД (показывается только если картинок больше 1) */}
                     {hasImages && product.images.length > 1 && (
-                        <button 
-                            style={{ ...arrowButtonStyle, right: '10px' }} 
-                            onClick={handleNextImage}
-                        >
-                            &#10095;
-                        </button>
+                        <button style={{ ...arrowButtonStyle, right: '10px' }} onClick={handleNextImage}>&#10095;</button>
                     )}
 
-                    {/* Индикатор количества картинок в углу (например: 1 / 3) */}
                     {hasImages && product.images.length > 1 && (
-                        <span style={{
-                            position: 'absolute',
-                            bottom: '10px',
-                            right: '10px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                            color: 'white',
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            fontSize: '11px',
-                            zIndex: 2
-                        }}>
+                        <span style={{ position: 'absolute', bottom: '10px', right: '10px', backgroundColor: 'rgba(0, 0, 0, 0.6)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', zIndex: 2 }}>
                             {currentImageIndex + 1} / {product.images.length}
                         </span>
                     )}
                 </div>
-                
-                <div className={styles.content}>
-                    <div className="container">
-                        <div className="row">
-                            <div className="col-lg-8">
-                                <h5>{product.name}</h5>
+
+                <div className={`${styles.content} d-flex flex-column flex-grow-1 p-3`}>
+                    <div className="container-fluid d-flex flex-column flex-grow-1 p-0">
+
+                        <div className="flex-grow-1">
+                            <div className="row align-items-center mb-2">
+                                <div className="col-8">
+                                    <h5 className="m-0" style={{ wordBreak: 'break-word' }}><b>{product.name}</b></h5>
+                                </div>
+                                <div id={styles.deleteSection} className="col-2 text-end">
+                                    <img src="./edit.png" alt="edit" onClick={() => setModalOpen(true)} style={{ cursor: 'pointer', width: '20px' }} />
+                                    <ModalEditProduct product={product} isVisible={modalOpen} onClose={() => setModalOpen(false)} />
+                                </div>
+                                <div id={styles.editSection} className="col-2 text-end">
+                                    <img src="./trash.png" alt="delete" onClick={() => setModalOpen2(true)} style={{ cursor: 'pointer', width: '20px' }} />
+                                    <ModalDeleteProduct productId={product.id} isVisible={modalOpen2} onClose={() => setModalOpen2(false)} />
+                                </div>
                             </div>
-                            <div id={styles.deleteSection} className="col-lg-2">
-                                <img src="./edit.png" alt="edit" onClick={() => setModalOpen(true)} style={{ cursor: 'pointer' }} />
-                                <ModalEditProduct product={product} isVisible={modalOpen} onClose={() => setModalOpen(false)} />
-                            </div>
-                            <div id={styles.editSection} className="col-lg-2">
-                                <img src="./trash.png" alt="delete" onClick={() => setModalOpen2(true)} style={{ cursor: 'pointer' }} />
-                                <ModalDeleteProduct productId={product.id} isVisible={modalOpen2} onClose={() => setModalOpen2(false)} />
-                            </div>
-                            
-                            <p><span id='caloriesCount'>{product.calories}</span> cal.</p>
-                            <p>Category: <span id='productCategory'>{categories[product.category] || "Unknown"}</span></p>
-                            
-                            <p id='productFlags'>{flags[product.flags] || ""}</p>
-                            
-                            <p>Cooking state: <span id='cookingState'>{cookingStates[product.cookingNecessity] || "Unknown"}</span></p>
+
+                            <p className="mb-1"><b>cal.: </b> <span id={styles.caloriesCount}>{product.calories}</span></p>
+                            <p className="mb-1"><b>Category:</b> <span id={styles.productCategory}>{categories[product.category] || "Unknown"}</span></p>
+
+                            <p className="mb-3"><b>Cooking state:</b> <span id={styles.cookingState}>{cookingStates[product.cookingNecessity] || "Unknown"}</span></p>
+                            {product.flags && (
+                                <p id={styles.productFlags} className="mb-1" style={{ minHeight: '24px' }}>
+                                    {flags[product.flags]}
+                                </p>
+                            ) || <p style={{ minHeight: '24px' }}>&nbsp;</p>}
+                            <br />
                         </div>
-                        
-                        <button id={styles.buttonSeeMore} className="btn btn-warning" onClick={() => setModalOpen3(true)}>
+
+                        <button
+                            id={styles.buttonSeeMore}
+                            className="btn btn-warning mt-auto w-100"
+                            onClick={() => setModalOpen3(true)}
+                        >
                             See more
                         </button>
                         <ProductDetails product={product} isVisible={modalOpen3} onClose={() => setModalOpen3(false)} />
+
                     </div>
                 </div>
             </div>
