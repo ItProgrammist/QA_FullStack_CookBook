@@ -45,13 +45,24 @@
     color: #ffca43;
 }
 
-#dishFlags {
-    font-size: 14px;
+// #dishFlags {
+//     font-size: 14px;
+//     color: black;
+//     background-color: #e4a300;
+//     width: max-content;
+//     padding: 7px 10px 7px 10px;
+//     border-radius: 20px;
+// }
+
+.flagBadge {
+    font-size: 13px;
+    font-weight: 600;
     color: black;
     background-color: #e4a300;
-    width: max-content;
-    padding: 7px 10px 7px 10px;
-    border-radius: 20px;
+    padding: 4px 12px;
+    border-radius: 15px;
+    display: inline-block;
+    user-select: none;
 }
 
 #dishFlags:hover {

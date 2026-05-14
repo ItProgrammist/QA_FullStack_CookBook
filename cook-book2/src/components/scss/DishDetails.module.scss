@@ -7,6 +7,10 @@
     left: 0;
 }
 
+#formGroups {
+    text-align: left;
+}
+
 #modalContent {
     background-color: rgb(49, 49, 49);
     color: white;
@@ -23,4 +27,8 @@ span, p {
 #dishIngredients span {
     font-size: 16px;
     padding-top: 10px;
+}
+
+.macros span {
+    font-size: 18px;
 }

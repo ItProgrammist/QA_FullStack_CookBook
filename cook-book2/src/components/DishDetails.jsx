@@ -20,10 +20,10 @@ export function DishDetails({ dish, isVisible, onClose }) {
                         <form onSubmit={(e) => e.preventDefault()}>
                             <div className="container">
                                 <div id={styles.formGroups} className="row">
-                                    
+
                                     <div className={styles.ingredients}>
-                                        <h5>Ingredients: <br /> 
-                                            <span> 
+                                        <h5>Ingredients: <br />
+                                            <span>
                                                 {/* Безопасная проверка существования массива ингредиентов блюда */}
                                                 {dish.ingredients && dish.ingredients.length > 0 ? (
                                                     dish.ingredients.map((x, index) => (
@@ -35,17 +35,18 @@ export function DishDetails({ dish, isVisible, onClose }) {
                                                     <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: 'normal', marginTop: '5px' }}>
                                                         No ingredients added to this dish.
                                                     </div>
-                                                )} 
-                                            </span> 
-                                        </h5> 
+                                                )}
+                                            </span>
+                                            <br />
+                                        </h5>
                                     </div>
-                                    
-                                    <div className={styles.macros}> 
-                                        <h5>Proteins: <span>{dish.proteins}g</span></h5> 
-                                        <h5>Fats: <span>{dish.fats}g</span></h5> 
-                                        <h5>Carbs: <span>{dish.carbohydrates}g</span></h5> 
+
+                                    <div className={styles.macros}>
+                                        <h5>Proteins: <span>{dish.proteins}g.</span></h5>
+                                        <h5>Fats: <span>{dish.fats}g.</span></h5>
+                                        <h5>Carbs: <span>{dish.carbohydrates}g.</span></h5>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </form>

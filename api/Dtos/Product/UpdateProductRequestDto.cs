@@ -10,7 +10,6 @@ namespace api.Dtos.Product
         [StringLength(50, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
 
-        // Позволяем обновлять список картинок
         // public List<UpdateProductImageDto> Images { get; set; } = new();
 
         public List<UpdateProductFileImageDto> Images { get; set; } = new();
@@ -36,7 +35,9 @@ namespace api.Dtos.Product
         [Required]
         public CookingNecessity CookingNecessity { get; set; }
 
-        public ProductFlags Flags { get; set; } = ProductFlags.None;
+        // public ProductFlags Flags { get; set; } = ProductFlags.None;
+        public List<ProductFlags> Flags { get; set; } = new List<ProductFlags>();
+
 
     }
 

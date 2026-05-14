@@ -105,12 +105,23 @@ export function ProductCard({ product, onEdit, onDelete, onSeeMore }) {
                             <p className="mb-1"><b>cal.: </b> <span id={styles.caloriesCount}>{product.calories}</span></p>
                             <p className="mb-1"><b>Category:</b> <span id={styles.productCategory}>{categories[product.category] || "Unknown"}</span></p>
                             <p className="mb-3"><b>Cooking state:</b> <span id={styles.cookingState}>{cookingStates[product.cookingNecessity] || "Unknown"}</span></p>
-
-                            {product.flags && (
-                                <p id={styles.productFlags} className="mb-1" style={{ minHeight: '24px' }}>
-                                    {flags[product.flags]}
+                            {console.log("ФЛАГИИИИИИИИИИИИ", product)}
+                            {product.flags && product.flags.length > 0 ? (
+                                <p className="d-flex flex-wrap gap-2 mb-1" style={{ minHeight: '24px' }}>
+                                    {product.flags
+                                        .map(fId => flags[fId])
+                                        .filter(Boolean)
+                                        .map((flagText, index) => (
+                                            <span key={index} className={styles.flagBadge}>
+                                                {flagText}
+                                            </span>
+                                        ))
+                                    }
                                 </p>
-                            ) || <p style={{ minHeight: '24px' }}>&nbsp;</p>}
+                            ) : (
+                                <p style={{ minHeight: '24px' }}>&nbsp;</p>
+                            )}
+
                             <br />
                         </div>
 

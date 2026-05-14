@@ -16,7 +16,8 @@ namespace api.Dtos.Product
         public string? Ingredients { get; set; }
         public ProductCategory Category { get; set; }
         public CookingNecessity CookingNecessity { get; set; }
-        public ProductFlags Flags { get; set; } = ProductFlags.None;
+        // public ProductFlags Flags { get; set; } = ProductFlags.None;
+        public List<ProductFlags> Flags { get; set; } = new List<ProductFlags>();
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 

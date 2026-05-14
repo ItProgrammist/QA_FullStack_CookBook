@@ -39,7 +39,10 @@ namespace api.Controllers
 
             if (flags.HasValue && flags.Value > 0)
             {
-                query = query.Where(d => (int)d.Flags == flags.Value);
+                // query = query.Where(d => (int)d.Flags == flags.Value);
+                var targetFlag = (api.Enums.DishEnums.DishFlags)flags.Value;
+                query = query.Where(d => d.Flags.Contains(targetFlag));
+
             }
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -104,6 +107,11 @@ namespace api.Controllers
         [HttpPut("{id}")]
         public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateDishRequestDto dishDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var dishModel = _context.Dishes.FirstOrDefault(x => x.Id == id);
             if (dishModel == null) return NotFound();
 

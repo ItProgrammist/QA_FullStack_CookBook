@@ -5,7 +5,7 @@ import styles from './scss/ModalWindowDish.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
 
-export function ModalWindowDish({ isVisible, onClose }) {
+export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     if (!isVisible) return null;
 
     const fileInputRef = useRef(null)
@@ -16,6 +16,7 @@ export function ModalWindowDish({ isVisible, onClose }) {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState("");
     const [chosenIngredients, setChosenIngredients] = useState([]);
+    const [isLoadingDish, setIsLoadingDish] = useState(true);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -24,8 +25,8 @@ export function ModalWindowDish({ isVisible, onClose }) {
         fats: 0,
         carbohydrates: 0,
         portionSize: 0,
-        category: 0,
-        flags: 0,
+        category: "",
+        flags: [],
         ingredients: [],
         images: []
     });
@@ -39,6 +40,47 @@ export function ModalWindowDish({ isVisible, onClose }) {
         category: "",
         ingredients: ""
     });
+
+    const DISH_MACROS_MAP = {
+
+        "десерт": 0,
+        "первое": 1,
+        "второе": 2,
+        "напиток": 3,
+        "салат": 4,
+        "суп": 5,
+        "перекус": 6,
+    };
+
+    const parseNameAndCategory = (rawName, defaultCategory) => {
+        if (!rawName) return { cleanName: "", categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10) };
+
+        const macroRegex = /!([а-яА-Яa-zA-Z0-9_]+)/g;
+        const matches = [...rawName.matchAll(macroRegex)];
+
+        if (matches.length === 0) {
+            return {
+                cleanName: rawName.trim(),
+                categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10)
+            };
+        }
+
+        const firstMacroWord = matches[0][1].toLowerCase();
+
+        let categoryId = DISH_MACROS_MAP[firstMacroWord];
+
+        if (categoryId === undefined) {
+            categoryId = defaultCategory === "" ? null : parseInt(defaultCategory, 10);
+        }
+
+        const cleanName = rawName.replace(macroRegex, "").replace(/\s+/g, ' ').trim();
+
+        return { cleanName, categoryId };
+    };
+
+
+
+
 
     useEffect(() => {
         fetch('http://localhost:5254/api/product')
@@ -66,21 +108,58 @@ export function ModalWindowDish({ isVisible, onClose }) {
         fileInputRef.current.click()
     }
 
-    const recalculateMacros = (ingredientsList) => {
+    const recalculateMacros = (ingredientsList, forcedPortion = null, productsSnapshot = null, isDishLoading = false) => {
+        if (isDishLoading) {
+            return;
+        }
+
+        const targetProductsList = productsSnapshot || allProducts;
+
+        if (!targetProductsList || targetProductsList.length === 0) {
+            return;
+        }
+
+        if (!ingredientsList || ingredientsList.length === 0) {
+            setFormData(prev => ({
+                ...prev,
+                calories: "0",
+                proteins: "0",
+                fats: "0",
+                carbohydrates: "0"
+            }));
+            return;
+        }
+
         let totalCalories = 0;
         let totalProteins = 0;
         let totalFats = 0;
         let totalCarbohydrates = 0;
+        let totalDishWeight = 0;
 
         ingredientsList.forEach(item => {
-            const origProduct = allProducts.find(p => p.id === item.productId);
+            const origProduct = targetProductsList.find(p => p.id === item.productId);
             if (origProduct) {
+                totalDishWeight += item.amount;
                 totalCalories += (origProduct.calories * item.amount) / 100;
                 totalProteins += (origProduct.proteins * item.amount) / 100;
                 totalFats += (origProduct.fats * item.amount) / 100;
                 totalCarbohydrates += (origProduct.carbohydrates * item.amount) / 100;
             }
         });
+
+        const currentPortion = forcedPortion !== null ? forcedPortion : (parseFloat(formData.portionSize) || 0);
+
+        if (totalDishWeight > 0 && currentPortion > 0) {
+            totalCalories = (totalCalories / totalDishWeight) * currentPortion;
+            totalProteins = (totalProteins / totalDishWeight) * currentPortion;
+            totalFats = (totalFats / totalDishWeight) * currentPortion;
+            totalCarbohydrates = (totalCarbohydrates / totalDishWeight) * currentPortion;
+        } else {
+            totalCalories = 0;
+            totalProteins = 0;
+            totalFats = 0;
+            totalCarbohydrates = 0;
+        }
 
         setFormData(prev => ({
             ...prev,
@@ -92,9 +171,13 @@ export function ModalWindowDish({ isVisible, onClose }) {
 
         setErrors(prev => ({
             ...prev,
-            calories: "", proteins: "", fats: "", carbohydrates: ""
+            calories: "",
+            proteins: "",
+            fats: "",
+            carbohydrates: ""
         }));
     };
+
 
     const toBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -127,11 +210,29 @@ export function ModalWindowDish({ isVisible, onClose }) {
         }
     };
 
+    // const validateField = (name, value) => {
+    //     const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
+    //     const categoryRegex = /^[0-6]$/;
+
+    //     if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
+    //         if (value === "") return "This field is required";
+    //         if (!strictNumberRegex.test(value)) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
+    //         if (parseFloat(value) < 0) return "Value cannot be negative";
+    //     }
+
+    //     if (name === 'category') {
+    //         if (value === "") return "Category is required";
+    //         if (!categoryRegex.test(value)) return "Category must be a single digit from 0 to 6";
+    //     }
+
+    //     return "";
+    // };
+
     const validateField = (name, value) => {
         const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
         const categoryRegex = /^[0-6]$/;
-
-        if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
+        console.log("HEREEEEEEEEEEEEEEEEEE", name, value)
+        if (['calories', 'proteins', 'fats', 'carbohydrates'].includes(name)) {
             if (value === "") return "This field is required";
             if (!strictNumberRegex.test(value)) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
             if (parseFloat(value) < 0) return "Value cannot be negative";
@@ -165,14 +266,12 @@ export function ModalWindowDish({ isVisible, onClose }) {
             setErrors(prev => ({ ...prev, [fieldName]: errorMsg }));
         }
 
-        let finalValue = value;
-        if (fieldName === 'category') {
-            finalValue = value !== "" && !isNaN(value) ? parseInt(value, 10) : value;
-        } else if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(fieldName)) {
-            finalValue = value !== "" && !isNaN(value) ? parseFloat(value) : value;
-        }
+        setFormData(prev => ({ ...prev, [fieldName]: value }));
 
-        setFormData(prev => ({ ...prev, [fieldName]: finalValue }));
+        if (fieldName === 'portionSize') {
+            const parsedPortion = parseFloat(value) || 0;
+            recalculateMacros(chosenIngredients, parsedPortion);
+        }
     };
 
     const handleAddIngredient = (e) => {
@@ -227,8 +326,20 @@ export function ModalWindowDish({ isVisible, onClose }) {
     };
 
     const handleFlagSelect = (flagValue) => {
-        setFormData(prev => ({ ...prev, flags: flagValue }));
+        setFormData(prev => {
+            const currentFlags = prev.flags;
+            const isAlreadySelected = currentFlags.includes(flagValue);
+            const nextFlags = isAlreadySelected
+                ? currentFlags.filter(f => f !== flagValue)
+                : [...currentFlags, flagValue];
+            return { ...prev, flags: nextFlags };
+        });
     };
+
+    const handleClearFlags = () => {
+        setFormData(prev => ({ ...prev, flags: [] }));
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -250,11 +361,29 @@ export function ModalWindowDish({ isVisible, onClose }) {
             return;
         }
 
+        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+        const firstFlag = formData.flags.length > 0 ? parseInt(formData.flags[0], 10) : 0;
+
         try {
+            const { cleanName, categoryId } = parseNameAndCategory(formData.name, formData.category);
+            if (categoryId === null || isNaN(categoryId)) {
+                setErrors(prev => ({ ...prev, category: "Пожалуйста, выберите категорию или укажите макрос (например, !мясо) в названии!" }));
+                return;
+            }
             const response = await fetch('http://localhost:5254/api/dish', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    // ИСПРАВЛЕНИЕ: Конвертируем строку категории в число перед отправкой
+                    category: categoryId,
+                    name: cleanName,
+                    // Оставляем вашу правильную логику для массива флагов
+                    flags: Array.isArray(formData.flags) ? formData.flags : []
+                })
             });
 
             if (response.ok) {
@@ -356,15 +485,15 @@ export function ModalWindowDish({ isVisible, onClose }) {
                                     </div>
                                     <div className="form-group col-lg-12">
                                         <label htmlFor="exampleInputPortion">Portion, g.</label>
-                                        <input type="text" className="form-control" id="exampleInputPortion" placeholder="120" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInputPortion" placeholder="120" value={formData.portionSize} onChange={handleInputChange} />
                                         {errors.portionSize && <small style={errorStyle}>{errors.portionSize}</small>}
                                     </div>
 
                                     <div className={`${styles.flagsField} col-lg-12 row my-2`}>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 1 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 2 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 3 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
-                                        <div className={`${styles.flagClear} col-lg-3`} onClick={() => handleFlagSelect(0)}>Clear</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(1) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(2) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(3) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
+                                        <div className={`${styles.flagClear} col-lg-3`} onClick={handleClearFlags}>Clear</div>
                                     </div>
 
                                     <br />

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState, useRef, useEffect } from 'react'
 import styles from './scss/ModalEditDish.module.scss'
@@ -31,7 +32,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         carbohydrates: dish.carbohydrates?.toString() || "0",
         portionSize: dish.portionSize?.toString() || "0",
         category: dish.category?.toString() ?? "0",
-        flags: dish.flags ?? 0,
+        flags: dish.flags && dish.flags !== 0 ? [dish.flags] : [],
         ingredients: dish.ingredients ? dish.ingredients.map(i => ({
             productId: i.productId,
             amount: i.amount
@@ -57,9 +58,15 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
     useEffect(() => {
         fetch('http://localhost:5254/api/product')
             .then(res => res.json())
-            .then(data => setAllProducts(data))
+            .then(data => {
+                setAllProducts(data);
+
+                if (chosenIngredients && chosenIngredients.length > 0) {
+                    recalculateMacros(chosenIngredients, null, data);
+                }
+            })
             .catch(err => console.error("Failed to load products:", err));
-    }, []);
+    }, [dish]);
 
     useEffect(() => {
         if (searchQuery.length >= 2) {
@@ -74,21 +81,49 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
     }, [searchQuery, allProducts]);
 
-    const recalculateMacros = (ingredientsList) => {
+    const recalculateMacros = (ingredientsList, forcedPortion = null, productsSnapshot = null) => {
         let totalCalories = 0;
         let totalProteins = 0;
         let totalFats = 0;
         let totalCarbohydrates = 0;
+        let totalDishWeight = 0;
+
+        const targetProductsList = productsSnapshot || allProducts;
+
+        if (!ingredientsList || ingredientsList.length === 0 || targetProductsList.length === 0) {
+            setFormData(prev => ({
+                ...prev,
+                calories: "0", proteins: "0", fats: "0", carbohydrates: "0"
+            }));
+            return;
+        }
 
         ingredientsList.forEach(item => {
             const origProduct = allProducts.find(p => p.id === item.productId);
             if (origProduct) {
+                totalDishWeight += item.amount;
+
                 totalCalories += (origProduct.calories * item.amount) / 100;
                 totalProteins += (origProduct.proteins * item.amount) / 100;
                 totalFats += (origProduct.fats * item.amount) / 100;
                 totalCarbohydrates += (origProduct.carbohydrates * item.amount) / 100;
             }
         });
+
+        // const currentPortion = parseFloat(formData.portionSize) || 0;
+        const currentPortion = forcedPortion !== null ? forcedPortion : (parseFloat(formData.portionSize) || 0);
+
+        if (totalDishWeight > 0 && currentPortion > 0) {
+            totalCalories = (totalCalories / totalDishWeight) * currentPortion;
+            totalProteins = (totalProteins / totalDishWeight) * currentPortion;
+            totalFats = (totalFats / totalDishWeight) * currentPortion;
+            totalCarbohydrates = (totalCarbohydrates / totalDishWeight) * currentPortion;
+        } else {
+            totalCalories = 0;
+            totalProteins = 0;
+            totalFats = 0;
+            totalCarbohydrates = 0;
+        }
 
         setFormData(prev => ({
             ...prev,
@@ -137,7 +172,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
 
     const validateField = (name, value) => {
         const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
-        const categoryRegex = /^[0-8]$/;
+        const categoryRegex = /^[0-6]$/;
 
         if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
             if (value === "") return "This field is required";
@@ -175,6 +210,11 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
 
         setFormData(prev => ({ ...prev, [fieldName]: value }));
+
+        if (fieldName === 'portionSize') {
+            const parsedPortion = parseFloat(value) || 0;
+            recalculateMacros(chosenIngredients, parsedPortion);
+        }
     };
 
     const handleAddIngredient = (e) => {
@@ -229,8 +269,19 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
     };
 
     const handleFlagSelect = (flagValue) => {
-        setFormData(prev => ({ ...prev, flags: flagValue }));
+        setFormData(prev => {
+            const currentFlags = prev.flags;
+            const isAlreadySelected = currentFlags.includes(flagValue);
+            const nextFlags = isAlreadySelected
+                ? currentFlags.filter(f => f !== flagValue)
+                : [...currentFlags, flagValue];
+            return { ...prev, flags: nextFlags };
+        });
     };
+
+    const handleClearFlags = () => {
+        setFormData(prev => ({ ...prev, flags: [] }));
+    };;
 
     const handleSubmit = async () => {
         const newErrors = {
@@ -258,10 +309,16 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             carbohydrates: parseFloat(formData.carbohydrates),
             portionSize: parseFloat(formData.portionSize),
             category: parseInt(formData.category, 10),
-            flags: formData.flags,
+            flags: formData.flags && formData.flags.length > 0 ? parseInt(formData.flags[0], 10) : 0,
             ingredients: formData.ingredients,
             images: formData.images
         };
+
+        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+
+        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+
+        const firstFlag = formData.flags.length > 0 ? parseInt(formData.flags[0], 10) : 0;
 
         try {
             const response = await fetch(`http://localhost:5254/api/dish/${dish.id}`, {
@@ -371,15 +428,13 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
                                         <input value={formData.category} placeholder="Category ID (0-8)" type="text" className="form-control" id="brow2_input" list="brow2" onChange={handleInputChange} />
                                         {errors.category && <small style={errorStyle}>{errors.category}</small>}
                                         <datalist id="brow2">
-                                            <option value="0">Frozen</option>
-                                            <option value="1">Meat</option>
-                                            <option value="2">Vegetables</option>
-                                            <option value="3">Greens</option>
-                                            <option value="4">Spices</option>
-                                            <option value="5">Cereals</option>
-                                            <option value="6">Canned</option>
-                                            <option value="7">Liquid</option>
-                                            <option value="8">Sweets</option>
+                                            <option value="0">Dessert</option>
+                                            <option value="1">FirstCourse</option>
+                                            <option value="2">SecondCourse</option>
+                                            <option value="3">Drink</option>
+                                            <option value="4">Salad</option>
+                                            <option value="5">Soup</option>
+                                            <option value="6">Snack</option>
                                         </datalist>
                                     </div>
                                     <div className="form-group col-lg-12">
@@ -390,10 +445,10 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
                                     <br /><br />
 
                                     <div className={`${styles.flagsField} col-lg-12 row my-2`}>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 1 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 2 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
-                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 3 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
-                                        <div className={`${styles.flagClear} col-lg-3`} onClick={() => handleFlagSelect(0)}>Clear</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(1) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(2) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
+                                        <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(3) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
+                                        <div className={`${styles.flagClear} col-lg-3`} onClick={handleClearFlags}>Clear</div>
                                     </div>
 
                                     <br /><br />

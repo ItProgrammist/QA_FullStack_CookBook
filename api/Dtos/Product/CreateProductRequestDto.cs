@@ -35,7 +35,8 @@ namespace api.Dtos.Product
         [Required]
         public CookingNecessity CookingNecessity { get; set; }
 
-        public ProductFlags Flags { get; set; } = ProductFlags.None;
+        // public ProductFlags Flags { get; set; } = ProductFlags.None;
+        public List<ProductFlags> Flags { get; set; } = new List<ProductFlags>();
 
 
     }

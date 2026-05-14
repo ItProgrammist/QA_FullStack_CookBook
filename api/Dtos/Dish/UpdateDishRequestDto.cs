@@ -34,12 +34,13 @@ namespace api.Dtos.Dish
         [Required]
         public DishCategory Category { get; set; }
 
-        public DishFlags Flags { get; set; } = DishFlags.None;
+        // public DishFlags Flags { get; set; } = DishFlags.None;
+        public List<DishFlags> Flags { get; set; } = new List<DishFlags>();
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             double totalMacros = Proteins + Fats + Carbohydrates;
-            if (totalMacros > 100)
+            if (totalMacros > PortionSize)
             {
                 yield return new ValidationResult(
                     $"Сумма БЖУ ({totalMacros}г) не может превышать 100 грамм.",

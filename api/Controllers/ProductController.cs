@@ -42,7 +42,9 @@ namespace api.Controllers
 
             if (flags.HasValue && flags.Value > 0)
             {
-                query = query.Where(p => (int)p.Flags == flags.Value);
+                var targetFlag = (api.Enums.ProductEnums.ProductFlags)flags.Value;
+                query = query.Where(d => d.Flags.Contains(targetFlag));
+                // query = query.Where(p => (int)p.Flags == flags.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(search))

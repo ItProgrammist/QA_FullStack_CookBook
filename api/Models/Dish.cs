@@ -49,8 +49,8 @@ namespace api.Models
         [Required]
         public DishCategory Category { get; set; }
 
-        public DishFlags Flags { get; set; } = DishFlags.None;
-
+        // public DishFlags Flags { get; set; } = DishFlags.None;
+        public List<DishFlags> Flags { get; set; } = new List<DishFlags>();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

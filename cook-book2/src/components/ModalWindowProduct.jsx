@@ -17,11 +17,52 @@ export function ModalWindowProduct({ isVisible, onClose }) {
     fats: 0,
     carbohydrates: 0,
     ingredients: "",
-    category: 0,
+    category: "",
     cookingNecessity: 0,
-    flags: 0,
+    flags: [],
     images: []
   });
+
+
+  const PRODUCT_MACROS_MAP = {
+    "замороженный": 0,
+    "мясной": 1,
+    "овощи": 2,
+    "зелень": 3,
+    "специи": 4,
+    "крупы": 5,
+    "консервы": 6,
+    "жидкость": 7,
+    "сладости": 8,
+  };
+
+  const parseNameAndCategory = (rawName, defaultCategory) => {
+    if (!rawName) return { cleanName: "", categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10) };
+
+    const macroRegex = /!([а-яА-Яa-zA-Z0-9_]+)/g;
+    const matches = [...rawName.matchAll(macroRegex)];
+
+    if (matches.length === 0) {
+      return {
+        cleanName: rawName.trim(),
+        categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10)
+      };
+    }
+
+    const firstMacroWord = matches[0][1].toLowerCase();
+
+    let categoryId = PRODUCT_MACROS_MAP[firstMacroWord];
+
+    if (categoryId === undefined) {
+      categoryId = defaultCategory === "" ? null : parseInt(defaultCategory, 10);
+    }
+
+    const cleanName = rawName.replace(macroRegex, "").replace(/\s+/g, ' ').trim();
+
+    return { cleanName, categoryId };
+  };
+
+
 
   const [errors, setErrors] = useState({
     calories: "",
@@ -127,8 +168,20 @@ export function ModalWindowProduct({ isVisible, onClose }) {
   };
 
   const handleFlagSelect = (flagValue) => {
-    setFormData(prev => ({ ...prev, flags: flagValue }));
+    setFormData(prev => {
+      const currentFlags = prev.flags;
+      const isAlreadySelected = currentFlags.includes(flagValue);
+      const nextFlags = isAlreadySelected
+        ? currentFlags.filter(f => f !== flagValue)
+        : [...currentFlags, flagValue];
+      return { ...prev, flags: nextFlags };
+    });
   };
+
+  const handleClearFlags = () => {
+    setFormData(prev => ({ ...prev, flags: [] }));
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -149,12 +202,37 @@ export function ModalWindowProduct({ isVisible, onClose }) {
       return;
     }
 
+    // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+    // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
+    const firstFlag = formData.flags.length > 0 ? parseInt(formData.flags[0], 10) : 0;
+
     try {
+      const { cleanName, categoryId } = parseNameAndCategory(formData.name, formData.category);
+      if (categoryId === null || isNaN(categoryId)) {
+        setErrors(prev => ({ ...prev, category: "Пожалуйста, выберите категорию или укажите макрос (например, !мясо) в названии!" }));
+        return;
+      }
       const response = await fetch('http://localhost:5254/api/product', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...formData,
+          name: cleanName,
+          category: categoryId,
+
+          cookingNecessity: parseInt(formData.cookingNecessity, 10),
+
+          calories: parseFloat(formData.calories) || 0,
+          proteins: parseFloat(formData.proteins) || 0,
+          fats: parseFloat(formData.fats) || 0,
+          carbohydrates: parseFloat(formData.carbohydrates) || 0,
+
+          flags: Array.isArray(formData.flags) ? formData.flags : []
+        })
       });
+
 
       if (response.ok) {
         alert("Product added successfully!");
@@ -250,11 +328,11 @@ export function ModalWindowProduct({ isVisible, onClose }) {
                     </div>
                   </div>
 
-                  <div className={`${styles.flagsField} col-lg-12 row`}>
-                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 1 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
-                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 2 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
-                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags === 3 ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
-                    <div className={`${styles.flagClear} col-lg-3`} onClick={() => handleFlagSelect(0)}>Clear</div>
+                  <div className={`${styles.flagsField} col-lg-12 row my-2`}>
+                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(1) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(1)}>#vegan</div>
+                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(2) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(2)}>#glutenFree</div>
+                    <div className={`${styles.flagCard} col-lg-3`} style={formData.flags.includes(3) ? activeFlagStyle : {}} onClick={() => handleFlagSelect(3)}>#sugarFree</div>
+                    <div className={`${styles.flagClear} col-lg-3`} onClick={handleClearFlags}>Clear</div>
                   </div>
 
                   <br /><br />

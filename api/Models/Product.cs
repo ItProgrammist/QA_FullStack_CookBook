@@ -47,7 +47,8 @@ namespace api.Models
         public CookingNecessity CookingNecessity { get; set; }
 
         [Required]
-        public ProductFlags Flags { get; set; } = ProductFlags.None;
+        // public ProductFlags Flags { get; set; } = ProductFlags.None;
+        public List<ProductFlags> Flags { get; set; } = new List<ProductFlags>();
 
         // [Required]
         // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
