@@ -5,7 +5,6 @@ import { Header } from '../components/Header'
 import { DishCard } from '../components/DishCard'
 import { SearchPanel } from '../components/SearchPanel'
 import { ModalWindowDish } from '../components/ModalWindowDish'
-
 import { ModalEditDish } from '../components/ModalEditDish'
 import { ModalDeleteDish } from '../components/ModalDeleteDish'
 import { DishDetails } from '../components/DishDetails'
@@ -14,29 +13,35 @@ export function Dishes() {
     const [activeFilters, setActiveFilters] = useState({
         search: "",
         category: "",
-        flags: ""
+        flags: []
     });
 
     const [modalOpenDish, setModalOpenDish] = useState(false)
     const [editModalOpen, setEditModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [detailsModalOpen, setDetailsModalOpen] = useState(false)
-
+    
     const [selectedDish, setSelectedDish] = useState(null)
     const [deleteDishId, setDeleteDishId] = useState("")
     const [dishes, setDishes] = useState([])
 
     const loadDishes = (searchParams = {}) => {
         const currentQuery = { ...activeFilters, ...searchParams };
-        
         let url = 'http://localhost:5254/api/dish?';
 
-        if (currentQuery.search) url += `search=${encodeURIComponent(currentQuery.search)}&`;
-        
+        if (currentQuery.search) {
+            url += `search=${encodeURIComponent(currentQuery.search)}&`;
+        }
+
         if (currentQuery.category !== undefined && currentQuery.category !== "") {
             url += `category=${currentQuery.category}&`;
         }
-        if (currentQuery.flags !== undefined && currentQuery.flags !== "") {
+
+        if (currentQuery.flags && Array.isArray(currentQuery.flags)) {
+            currentQuery.flags.forEach(flagId => {
+                url += `flags=${flagId}&`;
+            });
+        } else if (currentQuery.flags !== undefined && currentQuery.flags !== "") {
             url += `flags=${currentQuery.flags}&`;
         }
 
@@ -51,7 +56,6 @@ export function Dishes() {
             })
             .then(data => {
                 setDishes(data);
-
                 if (selectedDish) {
                     const updatedDish = data.find(d => d.id === selectedDish.id);
                     if (updatedDish) setSelectedDish(updatedDish);
@@ -69,7 +73,7 @@ export function Dishes() {
     const handleFiltersChange = (newFilters) => {
         const updated = { ...activeFilters, ...newFilters };
         setActiveFilters(updated);
-        loadDishes(updated); 
+        loadDishes(updated);
     };
 
     useEffect(() => {
@@ -104,34 +108,44 @@ export function Dishes() {
                     Create a dish
                 </button>
             </div>
-            
+
             <SearchPanel 
                 isProduct={false} 
                 onSearchSubmit={handleSearchSubmit} 
                 currentFilters={activeFilters} 
                 onFiltersChange={handleFiltersChange} 
             />
-            
+
             <ModalWindowDish isVisible={modalOpenDish} onClose={handleCloseModal} />
-            
+
+            {/* Ваш корректный вызов с динамическим key */}
             <ModalEditDish 
                 isVisible={editModalOpen} 
                 dish={selectedDish} 
-                onClose={() => { setEditModalOpen(false); loadDishes(); }} 
+                key={selectedDish ? selectedDish.id : 'empty-dish-edit'} 
+                onClose={() => { 
+                    setEditModalOpen(false); 
+                    loadDishes(); 
+                }} 
             />
 
+            {/* ДОБАВЛЕН КЛЮЧ: предотвращает отображение старого состава ингредиентов при переключении блюд */}
             <DishDetails 
                 isVisible={detailsModalOpen} 
                 dish={selectedDish} 
+                key={selectedDish ? `details-${selectedDish.id}` : 'empty-dish-details'}
                 onClose={() => setDetailsModalOpen(false)} 
             />
 
             <ModalDeleteDish 
                 isVisible={deleteModalOpen} 
                 dishId={deleteDishId} 
-                onClose={() => { setDeleteModalOpen(false); loadDishes(); }} 
+                onClose={() => { 
+                    setDeleteModalOpen(false); 
+                    loadDishes(); 
+                }} 
             />
-            
+
             <div className={styles.dishesBody}>
                 <div className="container">
                     <div className="col-lg-12">
@@ -141,9 +155,9 @@ export function Dishes() {
                                     <div key={item.id} className="col-lg-4 d-flex mb-4">
                                         <DishCard 
                                             dish={item} 
-                                            onEdit={handleOpenEdit}
-                                            onDelete={handleOpenDelete}
-                                            onSeeMore={handleOpenSeeMore}
+                                            onEdit={handleOpenEdit} 
+                                            onDelete={handleOpenDelete} 
+                                            onSeeMore={handleOpenSeeMore} 
                                         />
                                     </div>
                                 ))

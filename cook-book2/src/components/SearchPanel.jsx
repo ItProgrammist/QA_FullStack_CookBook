@@ -7,7 +7,7 @@ import { FiltersModalProducts } from './FiltersModalProducts'
 export function SearchPanel({ isProduct, onSearchSubmit, currentFilters, onFiltersChange }) {
     const [modalOpen, setModalOpen] = useState(false)
     const [searchText, setSearchText] = useState("");
-    const [sortBy, setSortBy] = useState("name"); // Дефолтная сортировка бэкенда
+    const [sortBy, setSortBy] = useState("name");
 
     let CurrentModal = FiltersModalDishes;
     let SearchTabSize = 'col-lg-6';
@@ -17,7 +17,6 @@ export function SearchPanel({ isProduct, onSearchSubmit, currentFilters, onFilte
         setSortBy(value);
     };
 
-    // При клике на кнопку Show собираем все активные фильтры и передаем их родителю
     const handleShowClick = () => {
         onSearchSubmit({
             search: searchText,

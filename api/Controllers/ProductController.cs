@@ -44,7 +44,6 @@ namespace api.Controllers
             {
                 var targetFlag = (api.Enums.ProductEnums.ProductFlags)flags.Value;
                 query = query.Where(d => d.Flags.Contains(targetFlag));
-                // query = query.Where(p => (int)p.Flags == flags.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -90,6 +89,15 @@ namespace api.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] CreateProductRequestDto productDto)
         {
+
+            double totalBju = productDto.Proteins + productDto.Fats + productDto.Carbohydrates;
+
+            if (totalBju > 100)
+            {
+                ModelState.AddModelError("BjuSum", $"Сумма БЖУ ({totalBju}г) не может превышать 100г. продукта.");
+                return BadRequest(ModelState);
+            }
+
             var productModel = productDto.ToProductFromCreateDTO();
             _context.Products.Add(productModel);
             _context.SaveChanges();
@@ -102,6 +110,15 @@ namespace api.Controllers
         [HttpPut("{id}")]
         public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateProductRequestDto productDto)
         {
+
+            double totalBju = productDto.Proteins + productDto.Fats + productDto.Carbohydrates;
+
+            if (totalBju > 100)
+            {
+                ModelState.AddModelError("BjuSum", $"Сумма БЖУ ({totalBju}г) не может превышать 100г. продукта.");
+                return BadRequest(ModelState);
+            }
+
             var productExists = _context.Products.Any(x => x.Id == id);
             if (!productExists) return NotFound();
 

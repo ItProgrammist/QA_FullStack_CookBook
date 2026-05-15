@@ -126,8 +126,15 @@ export function Products() {
       <ModalEditProduct
         isVisible={editModalOpen}
         product={selectedProduct}
-        onClose={() => { setEditModalOpen(false); loadProducts(); }}
+
+        key={selectedProduct ? selectedProduct.id : 'empty-product-edit'}
+
+        onClose={() => {
+          setEditModalOpen(false);
+          loadProducts();
+        }}
       />
+
 
       <ProductDetails isVisible={detailsModalOpen} product={selectedProduct} onClose={() => setDetailsModalOpen(false)} />
 

@@ -16,13 +16,16 @@ namespace api.Dtos.Dish
         [Range(0, double.MaxValue)]
         public double Calories { get; set; }
 
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Proteins { get; set; }
 
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Fats { get; set; }
 
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Carbohydrates { get; set; }
 
         [MinLength(1, ErrorMessage = "Dish must have at least one ingredient")]

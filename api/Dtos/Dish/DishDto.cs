@@ -15,12 +15,10 @@ namespace api.Dtos.Dish
         public double Carbohydrates { get; set; }
         public double PortionSize { get; set; }
         public DishCategory Category { get; set; }
-        // public DishFlags Flags { get; set; } = DishFlags.None;
         public List<DishFlags> Flags { get; set; } = new List<DishFlags>();
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
-        // public List<DishImageDto> Images { get; set; } = new();
         public List<FileDishImageDto> Images { get; set; } = new();
 
         public List<DishIngredientDto> Ingredients { get; set; } = new();

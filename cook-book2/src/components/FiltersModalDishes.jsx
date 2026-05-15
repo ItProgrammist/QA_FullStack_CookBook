@@ -1,24 +1,44 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from './scss/FiltersModalDishes.module.scss'
 
 export function FiltersModalDishes({ isVisible, onClose, currentFilters, onFiltersChange }) {
-    if (!isVisible) return null;
+    const [category, setCategory] = useState("");
+    
+    const [flags, setFlags] = useState([]);
 
-    const [category, setCategory] = useState(currentFilters?.category ?? "");
-    const [flags, setFlags] = useState(currentFilters?.flags ?? "");
+    useEffect(() => {
+        if (isVisible && currentFilters) {
+            setCategory(currentFilters.category !== undefined && currentFilters.category !== null ? currentFilters.category.toString() : "");
+            
+            const activeFlags = currentFilters.flags || [];
+            setFlags(Array.isArray(activeFlags) ? activeFlags.map(String) : (activeFlags ? [activeFlags.toString()] : []));
+        }
+    }, [isVisible, currentFilters]);
+
+    const handleFlagsSelectChange = (e) => {
+        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+        
+        if (selectedOptions.includes("")) {
+            setFlags([]);
+        } else {
+            setFlags(selectedOptions);
+        }
+    };
 
     const handleSave = (e) => {
         e.preventDefault();
         
         onFiltersChange({
             category: category !== "" ? parseInt(category, 10) : "",
-            flags: flags !== "" ? parseInt(flags, 10) : ""
+            flags: flags.map(f => parseInt(f, 10))
         });
         
         onClose();
     };
+
+    if (!isVisible) return null;
 
     return (
         <div id={styles.mainModal} className="modal fade show" tabIndex="-1" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
@@ -33,10 +53,9 @@ export function FiltersModalDishes({ isVisible, onClose, currentFilters, onFilte
                             <div className="container">
                                 <div id={styles.formGroups} className="row">
                                     
-                                    {/* Селект категории с числовыми привязками Enum твоего бэкенда для Dish */}
                                     <div id={styles.selectSearch} className="form-group col-lg-12 mb-3">
                                         <label>Category</label>
-                                        <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)} >
+                                        <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
                                             <option value="">All Categories</option>
                                             <option value="0">Dessert</option>
                                             <option value="1">FirstCourse</option>
@@ -48,11 +67,15 @@ export function FiltersModalDishes({ isVisible, onClose, currentFilters, onFilte
                                         </select>
                                     </div>
 
-                                    {/* Селект флагов с числовыми привязками Enum бэкенда */}
                                     <div id={styles.selectSearch} className="form-group col-lg-12 mb-4">
-                                        <label>Flags</label>
-                                        <select className="form-control" value={flags} onChange={(e) => setFlags(e.target.value)} >
-                                            <option value="">No/Any flags</option>
+                                        <label>Flags (Hold Ctrl to select multiple)</label>
+                                        <select 
+                                            className="form-control" 
+                                            value={flags} 
+                                            onChange={handleFlagsSelectChange}
+                                        >
+                                            {/* Если зажат этот пункт, остальные сбросятся */}
+                                            <option value="0">No/Any flags</option>
                                             <option value="1">Vegan</option>
                                             <option value="2">Gluten Free</option>
                                             <option value="3">Sugar Free</option>

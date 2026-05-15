@@ -25,16 +25,16 @@ namespace api.Models
         [Range(0, double.MaxValue)]
         public double Calories { get; set; }
 
-        [Required(ErrorMessage = "The proteins shouldn't be empty")]
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Proteins { get; set; }
 
-        [Required(ErrorMessage = "The fats shouldn't be empty")]
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Fats { get; set; }
 
-        [Required(ErrorMessage = "The carbs shouldn't be empty")]
-        [Range(0, 100)]
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Carbohydrates { get; set; }
 
         [Column(TypeName = "nvarchar(MAX)")]

@@ -22,14 +22,14 @@ namespace api.Controllers
 
         [HttpGet]
         public IActionResult GetAll(
-            [FromQuery] string? search,
-            [FromQuery] int? category,
-            [FromQuery] int? flags)
+        [FromQuery] string? search,
+        [FromQuery] int? category,
+        [FromQuery] List<int>? flags)
         {
             var query = _context.Dishes
                 .Include(d => d.Images)
                 .Include(d => d.Ingredients)
-                    .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.Product)
                 .AsQueryable();
 
             if (category.HasValue)
@@ -37,12 +37,21 @@ namespace api.Controllers
                 query = query.Where(d => (int)d.Category == category.Value);
             }
 
-            if (flags.HasValue && flags.Value > 0)
+            if (flags != null && flags.Any())
             {
-                // query = query.Where(d => (int)d.Flags == flags.Value);
-                var targetFlag = (api.Enums.DishEnums.DishFlags)flags.Value;
-                query = query.Where(d => d.Flags.Contains(targetFlag));
+                var preFilteredList = query.ToList();
 
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    preFilteredList = preFilteredList.Where(d => d.Name.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
+                var filteredDishes = preFilteredList
+                    .Where(d => d.Flags.Any(f => flags.Contains((int)f)))
+                    .OrderBy(d => d.Name)
+                    .Select(s => s.ToDishDto());
+
+                return Ok(filteredDishes);
             }
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -51,11 +60,10 @@ namespace api.Controllers
             }
 
             query = query.OrderBy(d => d.Name);
-
             var dishes = query.ToList().Select(s => s.ToDishDto());
-
             return Ok(dishes);
         }
+
 
 
         [HttpGet("{id}")]
@@ -78,6 +86,14 @@ namespace api.Controllers
 
             if (!ModelState.IsValid)
             {
+                return BadRequest(ModelState);
+            }
+
+            double totalBju = dishDto.Proteins + dishDto.Fats + dishDto.Carbohydrates;
+
+            if (totalBju > dishDto.PortionSize)
+            {
+                ModelState.AddModelError("BjuSum", $"Сумма БЖУ ({totalBju}г) не может превышать общий вес одной порции ({dishDto.PortionSize}г).");
                 return BadRequest(ModelState);
             }
 
@@ -109,6 +125,14 @@ namespace api.Controllers
         {
             if (!ModelState.IsValid)
             {
+                return BadRequest(ModelState);
+            }
+
+            double totalBju = dishDto.Proteins + dishDto.Fats + dishDto.Carbohydrates;
+
+            if (totalBju > dishDto.PortionSize)
+            {
+                ModelState.AddModelError("BjuSum", $"Сумма БЖУ ({totalBju}г) не может превышать общий вес одной порции ({dishDto.PortionSize}г).");
                 return BadRequest(ModelState);
             }
 

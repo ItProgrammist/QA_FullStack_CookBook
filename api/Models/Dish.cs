@@ -27,15 +27,15 @@ namespace api.Models
         public double Calories { get; set; }
 
         [Required]
-        [Range(0, 100)]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Proteins { get; set; }
 
         [Required]
-        [Range(0, 100)]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Fats { get; set; }
 
         [Required]
-        [Range(0, 100)]
+        [Range(0, double.MaxValue, ErrorMessage = "Значение не может быть отрицательным")]
         public double Carbohydrates { get; set; }
 
         [Required]

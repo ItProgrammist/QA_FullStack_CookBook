@@ -378,10 +378,8 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    // ИСПРАВЛЕНИЕ: Конвертируем строку категории в число перед отправкой
                     category: categoryId,
                     name: cleanName,
-                    // Оставляем вашу правильную логику для массива флагов
                     flags: Array.isArray(formData.flags) ? formData.flags : []
                 })
             });
