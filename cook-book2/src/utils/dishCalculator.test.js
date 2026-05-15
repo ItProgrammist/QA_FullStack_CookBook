@@ -151,4 +151,96 @@ describe('Dish Calories Automatic Calculation Suite (According to Specification)
 
 
 
-  });
+    // ТЕСТ СЛОЖНЫХ ДРОБЕЙ. ВЫЧИСЛЕНИЯ И ОКРУГЛЕНИЯ
+
+    /**
+     * @test проверяю математическую точность округления бесконечных дробей строго до 2 знаков
+     */
+    test('7. should precisely round complex fractional nutrient values to exactly two decimal places', () => {
+        const fractionalIngredients = [
+            { productId: "prod-2", amount: 33.33 } 
+        ];
+
+        const result = calculateDishMacros(fractionalIngredients, mockProductsDatabase);
+
+        expect(result.calories).toBe("43.33");
+    });
+
+
+    /**
+     * @test тест поведения системы. если справочник продуктов пуст/null/undefined
+     */
+    test('8. should return all zeroes if the global products database is empty, null or undefined', () => {
+        const validIngredients = [{ productId: "prod-1", amount: 100 }];
+        const expectedZeroes = { calories: "0", proteins: "0", fats: "0", carbohydrates: "0" };
+
+        const resultEmptyDb = calculateDishMacros(validIngredients, []);
+        const resultNullDb = calculateDishMacros(validIngredients, null);
+        const resultUndefinedDb = calculateDishMacros(validIngredients, undefined);
+
+        expect(resultEmptyDb).toEqual(expectedZeroes);
+        expect(resultNullDb).toEqual(expectedZeroes);
+        expect(resultUndefinedDb).toEqual(expectedZeroes);
+    });
+
+
+
+
+
+
+
+
+    /**
+     * @test тест продуктов с нулевыми КБЖУ (нпр. чистая вода) [INDEX]
+     * граничные значения физических свойств нутриентов (абсолютный 0) [INDEX]
+          */
+    test('9. should return exactly 0 values when processing zero-nutrient products like water', () => {
+        const waterPortion = [{ productId: "prod-4", amount: 500 }]; // 500 грамм воды
+
+        const result = calculateDishMacros(waterPortion, mockProductsDatabase);
+
+        expect(result).toEqual({ calories: "0", proteins: "0", fats: "0", carbohydrates: "0" });
+    });
+
+    /**
+     * @test тест на устойчивость к отсутствию продукта в локальной базе
+     * если передан несуществующий id то калькулятор должен пропустить его
+     * , не ломая расчет других элементов
+     */
+    test('10. should ignore missing product IDs from database gracefully without throwing unexpected exceptions', () => {
+        const ingredientsWithGhostProduct = [
+            { productId: "prod-1", amount: 100 },
+            { productId: "ghost-id", amount: 250 } // импостер
+        ];
+
+        const result = calculateDishMacros(ingredientsWithGhostProduct, mockProductsDatabase);
+
+        expect(result.calories).toBe("110"); // только валидный продукт
+    });
+
+    /**
+     * @test тест округления на границе математического округления 0.005 вверх
+     */
+    test('11. should round up correctly on the exact mathematical boundary of 0.005', () => {
+        const ingredients = [
+            { productId: "prod-2", amount: 0.35 } // 130*0.35/100=0.455 это округление до 0.46
+        ];
+
+        const result = calculateDishMacros(ingredients, mockProductsDatabase);
+
+        expect(result.calories).toBe("0.46");
+    });
+
+    /**
+     * @test тест округления на границе математического округления 0.004 вниз
+     */
+    test('12. should round down correctly on the exact mathematical boundary of 0.004', () => {
+        const ingredients = [
+            { productId: "prod-2", amount: 0.34 } // ...= 0.442 это уже округление до 0.44
+        ];
+
+        const result = calculateDishMacros(ingredients, mockProductsDatabase);
+
+        expect(result.calories).toBe("0.44");
+    });
+});

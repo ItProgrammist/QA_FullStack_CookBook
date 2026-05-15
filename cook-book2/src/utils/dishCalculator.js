@@ -23,7 +23,7 @@ export const calculateDishMacros = (ingredientsList, allProducts) => {
     let totalCarbohydrates = 0;
 
     for (const item of ingredientsList) {
-        // валидация на отрицательный класс эквивалентности
+        // валидация на невалидный <0  класс эквивалентности
         if (item.amount < 0) {
             throw new Error("Product amount in portion cannot be negative");
         }
