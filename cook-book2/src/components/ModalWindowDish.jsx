@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import styles from './scss/ModalWindowDish.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
+import { calculateDishMacros } from '../utils/dishCalculator';
 
 export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     if (!isVisible) return null;
@@ -113,6 +114,8 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
             return;
         }
 
+        const calculatedResult = calculateDishMacros(ingredientsList, targetProductsList);
+
         const targetProductsList = productsSnapshot || allProducts;
 
         if (!targetProductsList || targetProductsList.length === 0) {
@@ -125,7 +128,8 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                 calories: "0",
                 proteins: "0",
                 fats: "0",
-                carbohydrates: "0"
+                carbohydrates: "0",
+                ...calculatedResult
             }));
             return;
         }
