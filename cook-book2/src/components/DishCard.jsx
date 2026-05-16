@@ -43,6 +43,32 @@ export function DishCard({ dish, onEdit, onDelete, onSeeMore }) {
         3: "#sugarFree"
     };
 
+    const formatDateTime = (isoString) => {
+        if (!isoString) return "";
+
+        // Создаем объект даты. JavaScript сам корректно отсечет микросекунды
+        const date = new Date(isoString);
+
+        // Проверка на валидность строки, чтобы избежать вывода "Invalid Date"
+        if (isNaN(date.getTime())) {
+            return "Некорректная дата";
+        }
+
+        date.setHours(date.getHours() + 7);
+
+        // Настраиваем пуленепробиваемый локализованный вывод
+        const formatter = new Intl.DateTimeFormat('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false // Строгий 24-часовой формат
+        });
+
+        return formatter.format(date);
+    };
+
     const arrowButtonStyle = { position: 'absolute', top: '50%', transform: 'translateY(-50%)', backgroundColor: 'rgba(0, 0, 0, 0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', zIndex: 2, userSelect: 'none' };
 
     return (
@@ -83,6 +109,7 @@ export function DishCard({ dish, onEdit, onDelete, onSeeMore }) {
                             <p className="mb-1"><b>Category:</b> <span id={styles.dishCategory}>{categories[dish.category] || "Unknown"}</span></p>
                             <p className="mb-1"><b>Portion, g.:</b> <span id={styles.dishPortion}>{dish.portionSize}</span></p>
                             <br />
+                            <br />
 
                             {dish.flags && dish.flags.length > 0 ? (
                                 <p className="d-flex flex-wrap gap-2 mb-1" style={{ minHeight: '24px' }}>
@@ -98,6 +125,13 @@ export function DishCard({ dish, onEdit, onDelete, onSeeMore }) {
                                 </p>
                             ) : (
                                 <p style={{ minHeight: '24px' }}>&nbsp;</p>
+                            )}
+
+                            <p>Создано: {formatDateTime(dish.createdAt)}</p>
+                            {dish.updatedAt && formatDateTime(dish.updatedAt) !== "" && (
+                                <p>
+                                    <b>Редактировано:</b> {formatDateTime(dish.updatedAt)}
+                                </p>
                             )}
 
                             <br />

@@ -6,6 +6,7 @@ import { Header } from './Header'
 
 export function ProductCard({ product, onEdit, onDelete, onSeeMore }) {
     if (!product) return null;
+    console.log(product)
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const hasImages = product.images && product.images.length > 0;
@@ -66,6 +67,34 @@ export function ProductCard({ product, onEdit, onDelete, onSeeMore }) {
         userSelect: 'none'
     };
 
+    const formatDateTime = (isoString) => {
+        if (!isoString) return "";
+
+        // Создаем объект даты. JavaScript сам корректно отсечет микросекунды
+        const date = new Date(isoString);
+
+        // Проверка на валидность строки, чтобы избежать вывода "Invalid Date"
+        if (isNaN(date.getTime())) {
+            return "Некорректная дата";
+        }
+
+        date.setHours(date.getHours() + 7);
+
+        // Настраиваем пуленепробиваемый локализованный вывод
+        const formatter = new Intl.DateTimeFormat('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false // Строгий 24-часовой формат
+        });
+
+        return formatter.format(date);
+    };
+
+
+
     return (
         <div className="w-100 d-flex flex-column" style={{ height: '100%' }}>
             <div className={`${styles.cardBody} d-flex flex-column flex-grow-1`} style={{ height: '100%' }}>
@@ -123,6 +152,13 @@ export function ProductCard({ product, onEdit, onDelete, onSeeMore }) {
                             )}
 
                             <br />
+                            <br />
+                            <p>Создано: {formatDateTime(product.createdAt)}</p>
+                            {product.updatedAt && formatDateTime(product.updatedAt) !== "" && (
+                                <p>
+                                    <b>Редактировано:</b> {formatDateTime(product.updatedAt)}
+                                </p>
+                            )}
                         </div>
 
                         {/* Кнопка "See more" передает объект продукта наверх для открытия деталей */}

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from 'react'
 import styles from './scss/ModalEditDish.module.scss'
+import { calculateDishMacros } from '../utils/dishCalculator';
 
 export function ModalEditDish({ isVisible, onClose, dish }) {
     const DISH_MACROS_MAP = {
@@ -46,9 +47,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         const categoryVal = dish.category ?? dish.Category ?? "0";
 
         const serverFlags = dish.flags || dish.Flags || [];
-        const safeFlags = Array.isArray(serverFlags)
-            ? serverFlags.map(f => parseInt(f, 10)).filter(f => !isNaN(f))
-            : [];
+        const safeFlags = Array.isArray(serverFlags) ? serverFlags.map(f => parseInt(f, 10)).filter(f => !isNaN(f)) : [];
 
         return {
             name: dish.name || dish.Name || "",
@@ -61,12 +60,14 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             flags: safeFlags,
             ingredients: dish.ingredients ? dish.ingredients.map(i => ({ productId: i.productId, amount: i.amount })) : [],
             images: dish.images && dish.images.length > 0
-                ? dish.images.map(img => ({ base64Data: img.base64Data, contentType: img.contentType }))
+                ? dish.images.map(img => ({
+                    base64Data: img.base64Data || img.data || "",
+                    contentType: img.contentType || "image/jpeg"
+                }))
                 : []
         };
     });
 
-    
     const filteredProducts = searchQuery.length >= 2
         ? allProducts.filter(p => p.name.toLowerCase().startsWith(searchQuery.toLowerCase()))
         : [];
@@ -74,7 +75,6 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchQuery(value);
-
         if (value.length >= 2) {
             const nextFiltered = allProducts.filter(p => p.name.toLowerCase().startsWith(value.toLowerCase()));
             if (nextFiltered.length > 0) {
@@ -87,56 +87,22 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
     };
 
-    const recalculateMacros = (ingredientsList, forcedPortion = null, productsSnapshot = null) => {
+    const recalculateMacros = (ingredientsList, productsSnapshot = null) => {
         const targetProductsList = productsSnapshot || allProducts;
-
-        if (!targetProductsList || targetProductsList.length === 0) {
-            return;
-        }
+        if (!targetProductsList || targetProductsList.length === 0) return;
 
         if (!ingredientsList || ingredientsList.length === 0) {
             setFormData(prev => ({ ...prev, calories: "0", proteins: "0", fats: "0", carbohydrates: "0" }));
             return;
         }
 
-        let totalCalories = 0;
-        let totalProteins = 0;
-        let totalFats = 0;
-        let totalCarbohydrates = 0;
-        let totalDishWeight = 0;
-
-        ingredientsList.forEach(item => {
-            const origProduct = targetProductsList.find(p => p.id === item.productId);
-            if (origProduct) {
-                totalDishWeight += item.amount;
-                totalCalories += (origProduct.calories * item.amount) / 100;
-                totalProteins += (origProduct.proteins * item.amount) / 100;
-                totalFats += (origProduct.fats * item.amount) / 100;
-                totalCarbohydrates += (origProduct.carbohydrates * item.amount) / 100;
-            }
-        });
-
-        const currentPortion = forcedPortion !== null ? forcedPortion : (parseFloat(formData.portionSize) || 0);
-
-        if (totalDishWeight > 0 && currentPortion > 0) {
-            totalCalories = (totalCalories / totalDishWeight) * currentPortion;
-            totalProteins = (totalProteins / totalDishWeight) * currentPortion;
-            totalFats = (totalFats / totalDishWeight) * currentPortion;
-            totalCarbohydrates = (totalCarbohydrates / totalDishWeight) * currentPortion;
-        } else {
-            totalCalories = 0;
-            totalProteins = 0;
-            totalFats = 0;
-            totalCarbohydrates = 0;
-        }
+        const calculatedResult = calculateDishMacros(ingredientsList, targetProductsList);
 
         setFormData(prev => ({
             ...prev,
-            calories: (Math.round(totalCalories * 100) / 100).toString(),
-            proteins: (Math.round(totalProteins * 100) / 100).toString(),
-            fats: (Math.round(totalFats * 100) / 100).toString(),
-            carbohydrates: (Math.round(totalCarbohydrates * 100) / 100).toString()
+            ...calculatedResult
         }));
+
         setErrors(prev => ({ ...prev, calories: "", proteins: "", fats: "", carbohydrates: "" }));
     };
 
@@ -146,7 +112,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             .then(data => {
                 setAllProducts(data);
                 if (chosenIngredients && chosenIngredients.length > 0) {
-                    recalculateMacros(chosenIngredients, null, data);
+                    recalculateMacros(chosenIngredients, data);
                 }
             })
             .catch(err => console.error("Failed to load products:", err));
@@ -155,7 +121,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
     const toBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(','));
+        reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.onerror = (error) => reject(error);
     });
 
@@ -163,14 +129,14 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         const files = Array.from(event.target.files);
         if (files.length > 0) {
             const newNames = files.map(f => f.name);
-            setFileNames(newNames);
+            setFileNames(prev => [...prev, ...newNames]);
             try {
                 const uploadPromises = files.map(async (file) => {
                     const base64 = await toBase64(file);
                     return { base64Data: base64, contentType: file.type };
                 });
                 const newMappedImages = await Promise.all(uploadPromises);
-                setFormData(prev => ({ ...prev, images: newMappedImages }));
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...newMappedImages] }));
                 event.target.value = "";
             } catch (error) {
                 console.error("Error processing files:", error);
@@ -181,19 +147,18 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
     const validateField = (name, value) => {
         const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
         const categoryRegex = /^[0-6]$/;
-        const stringValue = value !== null && value !== undefined ? value.toString() : "";
 
         if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
-            if (stringValue === "") return "This field is required";
-            if (isNaN(stringValue)) return "Only numbers are allowed";
-            if (!strictNumberRegex.test(stringValue)) return "Leading zeros are not allowed";
-            if (parseFloat(stringValue) < 0) return "Value cannot be negative";
+            if (value === "") return "This field is required";
+            if (!strictNumberRegex.test(value.toString())) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
+            if (parseFloat(value) < 0) return "Value cannot be negative";
         }
 
         if (name === 'category') {
-            if (stringValue === "") return "Category is required";
-            if (!categoryRegex.test(stringValue)) return "Category must be a single digit from 0 to 6";
+            if (value === "") return "Category is required";
+            if (!categoryRegex.test(value.toString())) return "Category must be a single digit from 0 to 6";
         }
+
         return "";
     };
 
@@ -209,7 +174,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             'exampleInputPortion': 'portionSize'
         };
 
-        let fieldName = fieldMap[id] || id;
+        const fieldName = fieldMap[id] || id;
 
         if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize', 'category'].includes(fieldName)) {
             const errorMsg = validateField(fieldName, value);
@@ -217,11 +182,6 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
 
         setFormData(prev => ({ ...prev, [fieldName]: value }));
-
-        if (fieldName === 'portionSize') {
-            const parsedPortion = parseFloat(value) || 0;
-            recalculateMacros(chosenIngredients, parsedPortion);
-        }
     };
 
     const handleAddIngredient = (e) => {
@@ -232,8 +192,8 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
         const amountInput = prompt("Enter amount in grams:", "100");
         const amountNum = parseFloat(amountInput);
-        if (isNaN(amountNum) || amountNum <= 0 || !/^(0|[1-9]\d*)(\.\d+)?$/.test(amountInput)) {
-            alert("Please enter a valid amount greater than 0 without leading zeros!");
+        if (isNaN(amountNum) || amountNum <= 0) {
+            alert("Please enter a valid amount greater than 0!");
             return;
         }
         if (chosenIngredients.some(i => i.productId === selectedProductId)) {
@@ -258,7 +218,6 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
 
         recalculateMacros(updatedIngredients);
         setSearchQuery("");
-        setErrors(prev => ({ ...prev, ingredients: "" }));
     };
 
     const handleRemoveIngredient = (productId) => {
@@ -297,7 +256,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             return { cleanName: rawName.trim(), categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10) };
         }
 
-        const firstMacroWord = matches.toLowerCase();
+        const firstMacroWord = matches[0][1].toLowerCase();
         let categoryId = DISH_MACROS_MAP[firstMacroWord];
 
         if (categoryId === undefined) {
@@ -310,19 +269,19 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
 
     const handleSubmit = async () => {
         const newErrors = {
-            calories: validateField('calories', formData.calories),
-            proteins: validateField('proteins', formData.proteins),
-            fats: validateField('fats', formData.fats),
-            carbohydrates: validateField('carbohydrates', formData.carbohydrates),
-            portionSize: validateField('portionSize', formData.portionSize),
-            category: validateField('category', formData.category),
+            calories: validateField('calories', formData.calories.toString()),
+            proteins: validateField('proteins', formData.proteins.toString()),
+            fats: validateField('fats', formData.fats.toString()),
+            carbohydrates: validateField('carbohydrates', formData.carbohydrates.toString()),
+            portionSize: validateField('portionSize', formData.portionSize.toString()),
+            category: validateField('category', formData.category.toString()),
             ingredients: formData.ingredients.length === 0 ? "Dish must have at least one ingredient" : ""
         };
 
         setErrors(newErrors);
 
         if (Object.values(newErrors).some(error => error !== "")) {
-            alert("Please fix validation errors before saving.");
+            alert("Please fix validation errors before submitting.");
             return;
         }
 
@@ -336,16 +295,12 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             carbohydrates: parseFloat(formData.carbohydrates) || 0,
             portionSize: parseFloat(formData.portionSize) || 0,
             category: categoryId,
-            flags: Array.isArray(formData.flags)
-                ? formData.flags.map(f => parseInt(f, 10)).filter(f => !isNaN(f))
-                : [],
+            flags: Array.isArray(formData.flags) ? formData.flags.map(f => parseInt(f, 10)) : [],
             ingredients: formData.ingredients,
-            images: formData.images
+            images: Array.isArray(formData.images) ? formData.images.filter(img => img.base64Data && img.base64Data !== "") : []
         };
 
         try {
-            console.log("SENDING DISH PAYLOAD TO SERVER:", JSON.stringify(payload));
-
             const response = await fetch(`http://localhost:5254/api/dish/${dish.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -355,19 +310,8 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
             if (response.ok) {
                 alert("Dish updated successfully!");
                 onClose();
-            } else if (response.status === 400) {
-                const errorJson = await response.json();
-                if (errorJson.errors) {
-                    let friendlyMessage = "Validation errors occurred:\n";
-                    Object.keys(errorJson.errors).forEach(field => {
-                        friendlyMessage += `\n• ${field}: ${errorJson.errors[field].join(", ")}`;
-                    });
-                    alert(friendlyMessage);
-                } else {
-                    alert("Validation error: " + (errorJson.title || "Invalid data"));
-                }
             } else {
-                alert(`Server error (${response.status}): ` + await response.text());
+                alert("Error: " + await response.text());
             }
         } catch (error) {
             console.error("Connection error:", error);
@@ -375,11 +319,11 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
         }
     };
 
+    if (!isVisible || !dish) return null;
+
     const errorStyle = { color: 'red', fontSize: '12px', marginTop: '5px', display: 'block' };
     const isFormInvalid = Object.values(errors).some(error => error !== "");
     const activeFlagStyle = { backgroundColor: '#ffc107', color: 'black' };
-
-    if (!isVisible || !dish) return null;
 
     return (
         <div id={styles.mainModal} className="modal fade show" tabIndex="-1" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
@@ -395,12 +339,11 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
                                 <div id={styles.formGroups} className="row">
                                     <div className="form-group">
                                         <label htmlFor="exampleInputEmail1">Dish name</label>
-                                        <input type="text" className="form-control" id="exampleInputEmail1" value={formData.name} placeholder="e.g. Apple pie" onChange={handleInputChange} required />
+                                        <input type="text" className="form-control" id="exampleInputEmail1" value={formData.name} onChange={handleInputChange} required />
                                     </div>
 
                                     <div id={styles.selectSearch} className="form-group col-lg-9">
                                         <label htmlFor="exampleInput2">Ingredients</label>
-                                        {/* ИСПРАВЛЕНИЕ: handleSearchChange теперь управляет вводом */}
                                         <input placeholder="Type 2+ letters to search..." type="text" className="form-control" id="exampleInput2" value={searchQuery} onChange={handleSearchChange} />
                                         {filteredProducts.length > 0 && (
                                             <select multiple className="form-control mt-2" style={{ height: '90px' }} value={[selectedProductId]} onChange={(e) => setSelectedProductId(e.target.value)}>
@@ -426,28 +369,28 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
 
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput3">Cal.</label>
-                                        <input type="text" className="form-control" id="exampleInput3" value={formData.calories} placeholder="420" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput3" value={formData.calories} onChange={handleInputChange} />
                                         {errors.calories && <small style={errorStyle}>{errors.calories}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput4">Proteins</label>
-                                        <input type="text" className="form-control" id="exampleInput4" value={formData.proteins} placeholder="8" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput4" value={formData.proteins} onChange={handleInputChange} />
                                         {errors.proteins && <small style={errorStyle}>{errors.proteins}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput5">Fats</label>
-                                        <input type="text" className="form-control" id="exampleInput5" value={formData.fats} placeholder="12" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput5" value={formData.fats} onChange={handleInputChange} />
                                         {errors.fats && <small style={errorStyle}>{errors.fats}</small>}
                                     </div>
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput6">Carbs.</label>
-                                        <input type="text" className="form-control" id="exampleInput6" value={formData.carbohydrates} placeholder="54" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInput6" value={formData.carbohydrates} onChange={handleInputChange} />
                                         {errors.carbohydrates && <small style={errorStyle}>{errors.carbohydrates}</small>}
                                     </div>
 
                                     <div className="form-group">
                                         <label htmlFor="brow2_input">Category</label>
-                                        <input value={formData.category} placeholder="Category ID (0-8)" type="text" className="form-control" id="brow2_input" list="brow2" onChange={handleInputChange} />
+                                        <input value={formData.category} placeholder="Category ID (0-6)" type="text" className="form-control" id="brow2_input" list="brow2" onChange={handleInputChange} />
                                         {errors.category && <small style={errorStyle}>{errors.category}</small>}
                                         <datalist id="brow2">
                                             <option value="0">Dessert</option>
@@ -462,7 +405,7 @@ export function ModalEditDish({ isVisible, onClose, dish }) {
 
                                     <div className="form-group col-lg-12">
                                         <label htmlFor="exampleInputPortion">Portion, g.</label>
-                                        <input type="text" className="form-control" id="exampleInputPortion" value={formData.portionSize} placeholder="120" onChange={handleInputChange} />
+                                        <input type="text" className="form-control" id="exampleInputPortion" value={formData.portionSize} onChange={handleInputChange} />
                                         {errors.portionSize && <small style={errorStyle}>{errors.portionSize}</small>}
                                     </div>
 

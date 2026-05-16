@@ -10,21 +10,20 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
 
     const fileInputRef = useRef(null)
     const [fileNames, setFileNames] = useState([]);
-
     const [searchQuery, setSearchQuery] = useState("");
     const [allProducts, setAllProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState("");
     const [chosenIngredients, setChosenIngredients] = useState([]);
-    const [isLoadingDish, setIsLoadingDish] = useState(true);
+    const [isLoadingDish, setIsLoadingDish] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
-        calories: 0,
-        proteins: 0,
-        fats: 0,
-        carbohydrates: 0,
-        portionSize: 0,
+        calories: "0",
+        proteins: "0",
+        fats: "0",
+        carbohydrates: "0",
+        portionSize: "0",
         category: "",
         flags: [],
         ingredients: [],
@@ -42,7 +41,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     });
 
     const DISH_MACROS_MAP = {
-
         "десерт": 0,
         "первое": 1,
         "второе": 2,
@@ -59,14 +57,10 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         const matches = [...rawName.matchAll(macroRegex)];
 
         if (matches.length === 0) {
-            return {
-                cleanName: rawName.trim(),
-                categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10)
-            };
+            return { cleanName: rawName.trim(), categoryId: defaultCategory === "" ? null : parseInt(defaultCategory, 10) };
         }
 
         const firstMacroWord = matches[0][1].toLowerCase();
-
         let categoryId = DISH_MACROS_MAP[firstMacroWord];
 
         if (categoryId === undefined) {
@@ -74,13 +68,8 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         }
 
         const cleanName = rawName.replace(macroRegex, "").replace(/\s+/g, ' ').trim();
-
         return { cleanName, categoryId };
     };
-
-
-
-
 
     useEffect(() => {
         fetch('http://localhost:5254/api/product')
@@ -91,9 +80,7 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
 
     useEffect(() => {
         if (searchQuery.length >= 2) {
-            const filtered = allProducts.filter(p =>
-                p.name.toLowerCase().startsWith(searchQuery.toLowerCase())
-            );
+            const filtered = allProducts.filter(p => p.name.toLowerCase().startsWith(searchQuery.toLowerCase()));
             setFilteredProducts(filtered);
             if (filtered.length > 0) {
                 setSelectedProductId(filtered[0].id);
@@ -108,11 +95,15 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         fileInputRef.current.click()
     }
 
+<<<<<<< Updated upstream
     const recalculateMacros = (ingredientsList, forcedPortion = null, productsSnapshot = null, isDishLoading = false) => {
         if (isDishLoading) {
             return;
         }
 
+=======
+    const recalculateMacros = (ingredientsList, productsSnapshot = null) => {
+>>>>>>> Stashed changes
         const targetProductsList = productsSnapshot || allProducts;
 
         if (!targetProductsList || targetProductsList.length === 0) {
@@ -120,6 +111,7 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         }
 
         if (!ingredientsList || ingredientsList.length === 0) {
+<<<<<<< Updated upstream
             setFormData(prev => ({
                 ...prev,
                 calories: "0",
@@ -127,57 +119,27 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                 fats: "0",
                 carbohydrates: "0"
             }));
+=======
+            setFormData(prev => ({ ...prev, calories: "0", proteins: "0", fats: "0", carbohydrates: "0", portionSize: "0" }));
+>>>>>>> Stashed changes
             return;
         }
 
-        let totalCalories = 0;
-        let totalProteins = 0;
-        let totalFats = 0;
-        let totalCarbohydrates = 0;
         let totalDishWeight = 0;
-
         ingredientsList.forEach(item => {
-            const origProduct = targetProductsList.find(p => p.id === item.productId);
-            if (origProduct) {
-                totalDishWeight += item.amount;
-                totalCalories += (origProduct.calories * item.amount) / 100;
-                totalProteins += (origProduct.proteins * item.amount) / 100;
-                totalFats += (origProduct.fats * item.amount) / 100;
-                totalCarbohydrates += (origProduct.carbohydrates * item.amount) / 100;
-            }
+            totalDishWeight += (parseFloat(item.amount) || 0);
         });
 
-        const currentPortion = forcedPortion !== null ? forcedPortion : (parseFloat(formData.portionSize) || 0);
-
-        if (totalDishWeight > 0 && currentPortion > 0) {
-            totalCalories = (totalCalories / totalDishWeight) * currentPortion;
-            totalProteins = (totalProteins / totalDishWeight) * currentPortion;
-            totalFats = (totalFats / totalDishWeight) * currentPortion;
-            totalCarbohydrates = (totalCarbohydrates / totalDishWeight) * currentPortion;
-        } else {
-            totalCalories = 0;
-            totalProteins = 0;
-            totalFats = 0;
-            totalCarbohydrates = 0;
-        }
+        const calculatedResult = calculateDishMacros(ingredientsList, targetProductsList);
 
         setFormData(prev => ({
             ...prev,
-            calories: (Math.round(totalCalories * 100) / 100).toString(),
-            proteins: (Math.round(totalProteins * 100) / 100).toString(),
-            fats: (Math.round(totalFats * 100) / 100).toString(),
-            carbohydrates: (Math.round(totalCarbohydrates * 100) / 100).toString()
+            ...calculatedResult,
+            portionSize: (Math.round(totalDishWeight * 100) / 100).toString()
         }));
 
-        setErrors(prev => ({
-            ...prev,
-            calories: "",
-            proteins: "",
-            fats: "",
-            carbohydrates: ""
-        }));
+        setErrors(prev => ({ ...prev, calories: "", proteins: "", fats: "", carbohydrates: "", portionSize: "" }));
     };
-
 
     const toBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -191,18 +153,13 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         if (files.length > 0) {
             const newNames = files.map(f => f.name);
             setFileNames(prev => [...prev, ...newNames]);
-
             try {
                 const uploadPromises = files.map(async (file) => {
                     const base64 = await toBase64(file);
                     return { base64Data: base64, contentType: file.type };
                 });
-
                 const newMappedImages = await Promise.all(uploadPromises);
-                setFormData(prev => ({
-                    ...prev,
-                    images: [...prev.images, ...newMappedImages]
-                }));
+                setFormData(prev => ({ ...prev, images: [...prev.images, ...newMappedImages] }));
                 event.target.value = "";
             } catch (error) {
                 console.error("Error processing files:", error);
@@ -210,37 +167,19 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         }
     };
 
-    // const validateField = (name, value) => {
-    //     const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
-    //     const categoryRegex = /^[0-6]$/;
-
-    //     if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
-    //         if (value === "") return "This field is required";
-    //         if (!strictNumberRegex.test(value)) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
-    //         if (parseFloat(value) < 0) return "Value cannot be negative";
-    //     }
-
-    //     if (name === 'category') {
-    //         if (value === "") return "Category is required";
-    //         if (!categoryRegex.test(value)) return "Category must be a single digit from 0 to 6";
-    //     }
-
-    //     return "";
-    // };
-
     const validateField = (name, value) => {
         const strictNumberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
         const categoryRegex = /^[0-6]$/;
-        console.log("HEREEEEEEEEEEEEEEEEEE", name, value)
-        if (['calories', 'proteins', 'fats', 'carbohydrates'].includes(name)) {
+
+        if (['calories', 'proteins', 'fats', 'carbohydrates', 'portionSize'].includes(name)) {
             if (value === "") return "This field is required";
-            if (!strictNumberRegex.test(value)) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
+            if (!strictNumberRegex.test(value.toString())) return "Enter a valid decimal number without leading zeros (e.g. 10, 5.5)";
             if (parseFloat(value) < 0) return "Value cannot be negative";
         }
 
         if (name === 'category') {
             if (value === "") return "Category is required";
-            if (!categoryRegex.test(value)) return "Category must be a single digit from 0 to 6";
+            if (!categoryRegex.test(value.toString())) return "Category must be a single digit from 0 to 6";
         }
 
         return "";
@@ -267,11 +206,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         }
 
         setFormData(prev => ({ ...prev, [fieldName]: value }));
-
-        if (fieldName === 'portionSize') {
-            const parsedPortion = parseFloat(value) || 0;
-            recalculateMacros(chosenIngredients, parsedPortion);
-        }
     };
 
     const handleAddIngredient = (e) => {
@@ -280,7 +214,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
             alert("Please select a product from the list first!");
             return;
         }
-
         const amountInput = prompt("Enter the amount of this ingredient in grams:", "100");
         const amountNum = parseFloat(amountInput);
 
@@ -303,13 +236,13 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
 
         const updatedIngredients = [...chosenIngredients, newIngredient];
         setChosenIngredients(updatedIngredients);
+
         setFormData(prev => ({
             ...prev,
             ingredients: updatedIngredients.map(i => ({ productId: i.productId, amount: i.amount }))
         }));
 
         recalculateMacros(updatedIngredients);
-
         setSearchQuery("");
         setErrors(prev => ({ ...prev, ingredients: "" }));
     };
@@ -317,6 +250,7 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     const handleRemoveIngredient = (productId) => {
         const updatedIngredients = chosenIngredients.filter(i => i.productId !== productId);
         setChosenIngredients(updatedIngredients);
+
         setFormData(prev => ({
             ...prev,
             ingredients: updatedIngredients.map(i => ({ productId: i.productId, amount: i.amount }))
@@ -327,11 +261,10 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
 
     const handleFlagSelect = (flagValue) => {
         setFormData(prev => {
-            const currentFlags = prev.flags;
-            const isAlreadySelected = currentFlags.includes(flagValue);
-            const nextFlags = isAlreadySelected
-                ? currentFlags.filter(f => f !== flagValue)
-                : [...currentFlags, flagValue];
+            const currentFlags = prev.flags || [];
+            const numericFlag = Number(flagValue);
+            const isAlreadySelected = currentFlags.includes(numericFlag);
+            const nextFlags = isAlreadySelected ? currentFlags.filter(f => f !== numericFlag) : [...currentFlags, numericFlag];
             return { ...prev, flags: nextFlags };
         });
     };
@@ -339,7 +272,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     const handleClearFlags = () => {
         setFormData(prev => ({ ...prev, flags: [] }));
     };
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -361,23 +293,24 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
             return;
         }
 
-        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
-        // const firstFlag = formData.flags.length > 0 ? formData.flags[0] : 0;
-        const firstFlag = formData.flags.length > 0 ? parseInt(formData.flags[0], 10) : 0;
-
         try {
             const { cleanName, categoryId } = parseNameAndCategory(formData.name, formData.category);
+
             if (categoryId === null || isNaN(categoryId)) {
                 setErrors(prev => ({ ...prev, category: "Пожалуйста, выберите категорию или укажите макрос (например, !мясо) в названии!" }));
                 return;
             }
+
             const response = await fetch('http://localhost:5254/api/dish', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
+                    calories: parseFloat(formData.calories) || 0,
+                    proteins: parseFloat(formData.proteins) || 0,
+                    fats: parseFloat(formData.fats) || 0,
+                    carbohydrates: parseFloat(formData.carbohydrates) || 0,
+                    portionSize: parseFloat(formData.portionSize) || 0,
                     category: categoryId,
                     name: cleanName,
                     flags: Array.isArray(formData.flags) ? formData.flags : []
@@ -415,14 +348,13 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                             <div className="container">
                                 <div id={styles.formGroups} className="row">
                                     <div className="form-group">
-                                        <label htmlFor="exampleInput1">Dish name</label>
+                                        <label htmlFor="exampleInputEmail1">Dish name</label>
                                         <input type="text" className="form-control" id="exampleInputEmail1" placeholder="e.g. Apple pie" onChange={handleInputChange} required />
                                     </div>
 
                                     <div id={styles.selectSearch} className="form-group col-lg-9">
                                         <label htmlFor="exampleInput2">Ingredients</label>
                                         <input placeholder="Type 2+ letters to search..." type="text" className="form-control" id="exampleInput2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-
                                         {filteredProducts.length > 0 && (
                                             <select multiple className="form-control mt-2" style={{ height: '90px' }} value={[selectedProductId]} onChange={(e) => setSelectedProductId(e.target.value)}>
                                                 {filteredProducts.map(p => (
@@ -447,7 +379,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
 
                                     <div className="form-group col-lg-3">
                                         <label htmlFor="exampleInput3">Cal.</label>
-                                        {/* ДОБАВЛЕН value={formData.calories} */}
                                         <input type="text" className="form-control" id="exampleInput3" value={formData.calories} placeholder="420" onChange={handleInputChange} />
                                         {errors.calories && <small style={errorStyle}>{errors.calories}</small>}
                                     </div>
@@ -468,7 +399,7 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="exampleInput7">Category</label>
+                                        <label htmlFor="exampleInput7_input">Category</label>
                                         <input placeholder="Category ID (0-6)" type="text" className="form-control" id="exampleInput7_input" list="brow2" onChange={handleInputChange} />
                                         {errors.category && <small style={errorStyle}>{errors.category}</small>}
                                         <datalist id="brow2">
@@ -481,10 +412,10 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                                             <option value="6">Snack</option>
                                         </datalist>
                                     </div>
+
                                     <div className="form-group col-lg-12">
                                         <label htmlFor="exampleInputPortion">Portion, g.</label>
-                                        <input type="text" className="form-control" id="exampleInputPortion" placeholder="120" value={formData.portionSize} onChange={handleInputChange} />
-                                        {errors.portionSize && <small style={errorStyle}>{errors.portionSize}</small>}
+                                        <input type="text" className="form-control" id="exampleInputPortion" placeholder="120" />
                                     </div>
 
                                     <div className={`${styles.flagsField} col-lg-12 row my-2`}>
@@ -494,8 +425,6 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
                                         <div className={`${styles.flagClear} col-lg-3`} onClick={handleClearFlags}>Clear</div>
                                     </div>
 
-                                    <br />
-                                    <br />
                                     <div className="col-lg-2">
                                         <img onClick={openDialog} src="../pin.png" alt="upload" style={{ cursor: 'pointer' }} />
                                         <input type="file" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} accept="image/*" multiple />
@@ -517,4 +446,4 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
             </div>
         </div>
     );
-};
+}

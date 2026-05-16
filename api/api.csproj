@@ -17,4 +17,13 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Запрещаем компилятору бэкенда сканировать папки тестов во время сборки -->
+    <Compile Remove="api.Tests\**" />
+    <Content Remove="api.Tests\**" />
+    <EmbeddedResource Remove="api.Tests\**" />
+    <None Remove="api.Tests\**" />
+  </ItemGroup>
+
 </Project>
+
