@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import styles from './scss/ModalWindowDish.module.scss'
 import { Link } from 'react-router-dom'
 import { Header } from './Header'
+import { calculateDishMacros } from '../utils/dishCalculator'
 
 export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     if (!isVisible) return null;
@@ -94,16 +95,11 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
     const openDialog = () => {
         fileInputRef.current.click()
     }
-
-<<<<<<< Updated upstream
-    const recalculateMacros = (ingredientsList, forcedPortion = null, productsSnapshot = null, isDishLoading = false) => {
+    const recalculateMacros = (ingredientsList, productsSnapshot = null, isDishLoading = false) => {
         if (isDishLoading) {
             return;
         }
 
-=======
-    const recalculateMacros = (ingredientsList, productsSnapshot = null) => {
->>>>>>> Stashed changes
         const targetProductsList = productsSnapshot || allProducts;
 
         if (!targetProductsList || targetProductsList.length === 0) {
@@ -111,20 +107,16 @@ export function ModalWindowDish({ isVisible, onClose, Dishdata }) {
         }
 
         if (!ingredientsList || ingredientsList.length === 0) {
-<<<<<<< Updated upstream
             setFormData(prev => ({
                 ...prev,
                 calories: "0",
                 proteins: "0",
                 fats: "0",
-                carbohydrates: "0"
+                carbohydrates: "0",
+                portionSize: "0"
             }));
-=======
-            setFormData(prev => ({ ...prev, calories: "0", proteins: "0", fats: "0", carbohydrates: "0", portionSize: "0" }));
->>>>>>> Stashed changes
             return;
         }
-
         let totalDishWeight = 0;
         ingredientsList.forEach(item => {
             totalDishWeight += (parseFloat(item.amount) || 0);

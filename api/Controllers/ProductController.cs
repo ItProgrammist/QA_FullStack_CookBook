@@ -173,12 +173,30 @@ namespace api.Controllers
         [HttpDelete("{id:guid}")]
         public IActionResult Delete([FromRoute] Guid id)
         {
+            var blockingDishes = _context.DishIngredients
+                .Where(di => di.ProductId == id)
+                .Select(di => di.Dish.Name)
+                .Distinct()
+                .ToList();
+
+            if (blockingDishes.Any())
+            {
+                var dishList = string.Join(", ", blockingDishes);
+                return BadRequest($"Невозможно удалить продукт. Он используется в составе следующих блюд: {dishList}");
+            }
+
             var productModel = _context.Products.Find(id);
-            if (productModel == null) return NotFound();
+            if (productModel == null)
+            {
+                return NotFound();
+            }
 
             _context.Products.Remove(productModel);
             _context.SaveChanges();
+
             return NoContent();
         }
+
+
     }
 }

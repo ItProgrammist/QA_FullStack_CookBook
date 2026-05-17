@@ -83,7 +83,6 @@ namespace api.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] CreateDishRequestDto dishDto)
         {
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -103,6 +102,33 @@ namespace api.Controllers
                 if (!productExists)
                 {
                     return BadRequest($"Продукт с ID {ingredient.ProductId} не существует в системе. Сначала создайте продукт.");
+                }
+            }
+
+            // =========================================================================
+            // 2.4 ТЗ: СЕРВЕРНАЯ ПРОВЕРА СЛЕДОВАНИЯ ФЛАГОВ РЕЦЕПТА
+            // =========================================================================
+            if (dishDto.Flags != null && dishDto.Flags.Any())
+            {
+                var ingredientIds = dishDto.Ingredients.Select(i => i.ProductId).ToList();
+                var databaseProducts = _context.Products.Where(p => ingredientIds.Contains(p.Id)).ToList();
+
+                foreach (var flag in dishDto.Flags)
+                {
+                    int flagValue = (int)flag;
+
+                    if (flagValue == 1 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(1)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Веган' для блюда, так как в его составе есть не-веганские продукты.");
+                    }
+                    if (flagValue == 2 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(2)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Без глютена' для блюда, так как в его составе есть продукты с глютеном.");
+                    }
+                    if (flagValue == 3 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(3)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Без сахара' для блюда, так как в его составе есть сахарсодержащие продукты.");
+                    }
                 }
             }
 
@@ -139,6 +165,33 @@ namespace api.Controllers
             var dishModel = _context.Dishes.FirstOrDefault(x => x.Id == id);
             if (dishModel == null) return NotFound();
 
+            // =========================================================================
+            // 2.4 ТЗ: СЕРВЕРНАЯ ПРОВЕРА СЛЕДОВАНИЯ ФЛАГОВ ПРИ ОБНОВЛЕНИИ
+            // =========================================================================
+            if (dishDto.Ingredients != null && dishDto.Ingredients.Any() && dishDto.Flags != null && dishDto.Flags.Any())
+            {
+                var ingredientIds = dishDto.Ingredients.Select(i => i.ProductId).ToList();
+                var databaseProducts = _context.Products.Where(p => ingredientIds.Contains(p.Id)).ToList();
+
+                foreach (var flag in dishDto.Flags)
+                {
+                    int flagValue = (int)flag;
+
+                    if (flagValue == 1 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(1)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Веган' для блюда, так как в его составе есть не-веганские продукты.");
+                    }
+                    if (flagValue == 2 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(2)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Без глютена' для блюда, так как в его составе есть продукты с глютеном.");
+                    }
+                    if (flagValue == 3 && databaseProducts.Any(p => p.Flags == null || !p.Flags.Select(f => (int)f).Contains(3)))
+                    {
+                        return BadRequest("Ошибка ТЗ (Пункт 2.4): Нельзя установить флаг 'Без сахара' для блюда, так как в его составе есть сахарсодержащие продукты.");
+                    }
+                }
+            }
+
             var oldIngredients = _context.DishIngredients.Where(i => i.DishId == id);
             var oldImages = _context.DishImages.Where(img => img.DishId == id);
 
@@ -154,7 +207,9 @@ namespace api.Controllers
             dishModel.PortionSize = dishDto.PortionSize;
             dishModel.Category = dishDto.Category;
             dishModel.Flags = dishDto.Flags;
-            dishModel.UpdatedAt = DateTime.UtcNow;
+
+            // ИСПРАВЛЕНИЕ ТЗ: Прибавляем требуемые +7 часов к серверному времени UTC (Tomsk/Novosibirsk zone)
+            dishModel.UpdatedAt = DateTime.UtcNow.AddHours(7);
 
             if (dishDto.Ingredients != null)
             {
@@ -202,6 +257,7 @@ namespace api.Controllers
 
             return Ok(result.ToDishDto());
         }
+
 
         [HttpDelete("{id:guid}")]
         public IActionResult Delete([FromRoute] Guid id)
